@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EREBUS STATION — Mission Briefing</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+
+    /* ── HERO ── */
+    .hero {
+      position: relative;
+      padding: 64px 0 52px;
+      text-align: center;
+      overflow: hidden;
+      animation: scanFlicker 8s infinite;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 50% at 50% 50%, rgba(0,180,220,0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.35em;
+      color: var(--muted);
+      margin-bottom: 18px;
+      opacity: 0;
+      animation: fadeIn 0.6s ease 0.2s forwards;
+    }
+
+    .hero-title {
+      font-family: var(--font-hud);
+      font-weight: 900;
+      font-size: clamp(42px, 8vw, 82px);
+      letter-spacing: 0.12em;
+      color: #e8f4f8;
+      line-height: 1;
+      position: relative;
+      display: inline-block;
+      opacity: 0;
+      animation: fadeIn 0.7s ease 0.5s forwards;
+    }
+    .hero-title .glitch-layer {
+      position: absolute;
+      inset: 0;
+      color: var(--accent);
+      opacity: 0;
+      animation: glitch 6s ease-in-out 2s infinite;
+    }
+    .hero-title .glitch-layer-2 {
+      position: absolute;
+      inset: 0;
+      color: var(--danger);
+      opacity: 0;
+      animation: glitch 6s ease-in-out 2.1s infinite;
+    }
+
+    .hero-subtitle {
+      font-family: var(--font-body);
+      font-size: 13px;
+      font-weight: 300;
+      letter-spacing: 0.25em;
+      color: var(--muted);
+      margin-top: 14px;
+      text-transform: uppercase;
+      opacity: 0;
+      animation: fadeIn 0.7s ease 0.8s forwards;
+    }
+
+    .hero-meta {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin-top: 28px;
+      flex-wrap: wrap;
+      opacity: 0;
+      animation: fadeIn 0.7s ease 1s forwards;
+    }
+    .meta-pill {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      padding: 5px 14px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+    .meta-pill span { color: var(--text); margin-left: 6px; }
+
+    /* ── GRID LAYOUT ── */
+    .content-grid {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 24px;
+      margin-bottom: 28px;
+    }
+    @media (max-width: 720px) {
+      .content-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ── LORE PANEL ── */
+    .lore-panel {
+      border: 1px solid var(--border);
+      background: var(--panel);
+      padding: 28px 32px;
+      position: relative;
+      opacity: 0;
+      animation: slideLeft 0.7s ease 1.1s forwards;
+    }
+    .lore-panel::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 3px; height: 100%;
+      background: var(--danger);
+    }
+    .lore-date {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      color: var(--danger);
+      margin-bottom: 16px;
+    }
+    .lore-text {
+      font-size: 14px;
+      font-weight: 300;
+      line-height: 1.85;
+      color: var(--text);
+    }
+    .lore-text p + p { margin-top: 14px; }
+    .lore-text strong {
+      color: #e8f4f8;
+      font-weight: 600;
+    }
+    .lore-text em {
+      color: var(--warn);
+      font-style: normal;
+    }
+
+    /* ── SIDE COLUMN ── */
+    .side-col {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* ── STATS CARD ── */
+    .stats-card {
+      border: 1px solid var(--border);
+      background: var(--panel);
+      padding: 20px 22px;
+      opacity: 0;
+      animation: slideRight 0.7s ease 1.2s forwards;
+    }
+    .stats-card-label {
+      font-family: var(--font-hud);
+      font-size: 9px;
+      letter-spacing: 0.25em;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 10px;
+      margin-bottom: 16px;
+    }
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 7px 0;
+      border-bottom: 1px solid rgba(26,46,61,0.5);
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+    .stat-row:last-child { border-bottom: none; }
+    .stat-row .stat-key { color: var(--muted); letter-spacing: 0.08em; }
+    .stat-row .stat-val { color: var(--text); }
+    .stat-row .stat-val.danger { color: var(--danger); }
+    .stat-row .stat-val.warn   { color: var(--warn); }
+    .stat-row .stat-val.accent { color: var(--accent); }
+    .stat-row .stat-val.green  { color: var(--green); }
+
+    /* ── DIFFICULTY CARD ── */
+    .diff-card {
+      border: 1px solid var(--border);
+      background: var(--panel);
+      padding: 20px 22px;
+      opacity: 0;
+      animation: slideRight 0.7s ease 1.35s forwards;
+    }
+    .diff-overall {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+    .diff-score {
+      font-family: var(--font-hud);
+      font-size: 44px;
+      font-weight: 900;
+      color: var(--warn);
+      line-height: 1;
+    }
+    .diff-label-wrap { flex: 1; }
+    .diff-label {
+      font-family: var(--font-hud);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--warn);
+      letter-spacing: 0.1em;
+    }
+    .diff-sublabel {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 4px;
+      letter-spacing: 0.05em;
+    }
+    .diff-bar-wrap { margin-bottom: 10px; }
+    .diff-bar-label {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--muted);
+      margin-bottom: 5px;
+      letter-spacing: 0.05em;
+    }
+    .diff-bar-track {
+      height: 4px;
+      background: var(--border);
+      position: relative;
+    }
+    .diff-bar-fill {
+      position: absolute;
+      top: 0; left: 0; height: 100%;
+      background: var(--bar-color, var(--accent));
+      transition: width 1.2s cubic-bezier(0.16,1,0.3,1);
+      width: 0;
+    }
+
+    /* ── OBJECTIVES ── */
+    .objectives {
+      border: 1px solid var(--border);
+      background: var(--panel);
+      padding: 28px 32px;
+      margin-bottom: 24px;
+      opacity: 0;
+      animation: fadeIn 0.7s ease 1.4s forwards;
+    }
+    .obj-list { list-style: none; margin-top: 6px; }
+    .obj-item {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      padding: 13px 0;
+      border-bottom: 1px solid rgba(26,46,61,0.6);
+    }
+    .obj-item:last-child { border-bottom: none; }
+    .obj-num {
+      font-family: var(--font-hud);
+      font-size: 10px;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+      min-width: 28px;
+      padding-top: 2px;
+    }
+    .obj-body { flex: 1; }
+    .obj-title {
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 600;
+      color: #e8f4f8;
+      margin-bottom: 4px;
+    }
+    .obj-desc {
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 300;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    .obj-badge { flex-shrink: 0; padding-top: 2px; }
+
+    /* ── MODULE OVERVIEW TABLE ── */
+    .module-table {
+      border: 1px solid var(--border);
+      background: var(--panel);
+      margin-bottom: 24px;
+      opacity: 0;
+      animation: fadeIn 0.7s ease 1.6s forwards;
+    }
+    .module-table-header {
+      display: grid;
+      grid-template-columns: 1fr 1fr 100px 90px 90px;
+      padding: 10px 20px;
+      background: var(--panel-2);
+      border-bottom: 1px solid var(--border);
+      font-family: var(--font-hud);
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      color: var(--muted);
+    }
+    .module-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 100px 90px 90px;
+      padding: 14px 20px;
+      border-bottom: 1px solid rgba(26,46,61,0.5);
+      align-items: center;
+      transition: background 0.2s;
+    }
+    .module-row:last-child { border-bottom: none; }
+    .module-row:hover { background: rgba(0,212,255,0.02); }
+    .mod-name {
+      font-family: var(--font-hud);
+      font-size: 12px;
+      font-weight: 700;
+      color: #e8f4f8;
+      letter-spacing: 0.05em;
+    }
+    .mod-type {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .mod-pips { display: flex; gap: 4px; }
+    .mod-time {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text);
+    }
+    .mod-id {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+    }
+
+    /* ── RULES ── */
+    .rules-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 32px;
+      opacity: 0;
+      animation: fadeIn 0.7s ease 1.8s forwards;
+    }
+    @media (max-width: 600px) { .rules-grid { grid-template-columns: 1fr; } }
+
+    .rule-card {
+      border: 1px solid var(--border);
+      background: var(--panel);
+      padding: 18px 20px;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+    .rule-icon {
+      font-family: var(--font-hud);
+      font-size: 18px;
+      color: var(--card-color, var(--accent));
+      line-height: 1;
+      min-width: 24px;
+    }
+    .rule-title {
+      font-family: var(--font-body);
+      font-size: 13px;
+      font-weight: 600;
+      color: #e8f4f8;
+      margin-bottom: 5px;
+    }
+    .rule-desc {
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 300;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    /* ── CTA ── */
+    .cta-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      padding: 24px 32px;
+      opacity: 0;
+      animation: fadeIn 0.8s ease 2s forwards;
+    }
+    .cta-text { flex: 1; }
+    .cta-title {
+      font-family: var(--font-hud);
+      font-size: 15px;
+      font-weight: 700;
+      color: #e8f4f8;
+      margin-bottom: 6px;
+      letter-spacing: 0.05em;
+    }
+    .cta-sub {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+    }
+
+    .begin-btn {
+      display: inline-block;
+      font-family: var(--font-hud);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.25em;
+      padding: 15px 36px;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      background: transparent;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.25s;
+      white-space: nowrap;
+      position: relative;
+      overflow: hidden;
+    }
+    .begin-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--accent);
+      transform: translateX(-101%);
+      transition: transform 0.3s ease;
+      z-index: 0;
+    }
+    .begin-btn span { position: relative; z-index: 1; }
+    .begin-btn:hover::before { transform: translateX(0); }
+    .begin-btn:hover { color: var(--bg); }
+  </style>
+</head>
+<body>
+
+<div class="scanlines"></div>
+<div class="vignette"></div>
+
+<!-- TOP BAR -->
+<header class="topbar">
+  <div class="station-id">EREBUS-7 // MISSION BRIEFING // EYES ONLY</div>
+  <div style="display:flex;gap:16px;align-items:center">
+    <div class="badge badge--danger">CLEARANCE: LEVEL 5</div>
+    <div class="badge badge--warn">PRIORITY: CRITICAL</div>
+  </div>
+</header>
+
+<main class="shell">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-eyebrow">CLASSIFIED MISSION DOSSIER — FILE 2347-E</div>
+    <div>
+      <h1 class="hero-title">
+        EREBUS
+        <span class="glitch-layer" aria-hidden="true">EREBUS</span>
+        <span class="glitch-layer-2" aria-hidden="true">EREBUS</span>
+      </h1>
+    </div>
+    <div class="hero-subtitle">Deep Space Research Station // Sector 9 // Grid 9-F</div>
+    <div class="hero-meta">
+      <div class="meta-pill">PLAYERS<span>1</span></div>
+      <div class="meta-pill">DURATION<span>20 MIN</span></div>
+      <div class="meta-pill">MODULES<span>4</span></div>
+      <div class="meta-pill">DIFFICULTY<span class="warn">INTERMEDIATE</span></div>
+      <div class="meta-pill">GENRE<span>SCI-FI / SURVIVAL</span></div>
+    </div>
+  </div>
+
+  <hr class="divider--glow">
+
+  <!-- MAIN CONTENT GRID -->
+  <div class="content-grid">
+
+    <!-- LORE -->
+    <div class="lore-panel">
+      <div class="panel-label">INCIDENT REPORT — AUTOMATED DISTRESS LOG</div>
+      <div class="lore-date">STARDATE 2347.062 — 94 DAYS AGO</div>
+      <div class="lore-text">
+        <p>
+          You are <strong>Engineer Mira Kovač</strong>, a systems specialist aboard the deep-space research vessel <em>Callisto IV</em>. En route to retrieve a missing science crew, your ship sustained critical damage from an uncharted debris field and was forced to dock with the nearest structure: <strong>Erebus Station</strong>, a Helix Corp research outpost last reported operational 94 days ago.
+        </p>
+        <p>
+          Upon boarding, you find the station abandoned. No crew. No transmissions. The few logs that remain are corrupted or classified. Whatever happened here happened fast — half-eaten meals still sit in the mess hall; a chess game mid-move.
+        </p>
+        <p>
+          Your ship is gone. A catastrophic fuel leak ignited during docking and <em>Callisto IV</em> was destroyed</em>. You are alone. Your only chance of rescue is to broadcast a distress signal from Erebus Station's communications array — but to do that, you'll need to restore power, oxygen, and the station's core systems first.
+        </p>
+        <p>
+          Emergency reserves give you <strong>20 minutes of power</strong>. After that, life support fails permanently. Four critical modules must be restored in any order; each releases a security fragment required to unlock the escape pod. Move fast. Move smart.
+        </p>
+      </div>
+    </div>
+
+    <!-- SIDE COLUMN -->
+    <div class="side-col">
+
+      <!-- QUICK STATS -->
+      <div class="stats-card">
+        <div class="stats-card-label">MISSION PARAMETERS</div>
+        <div class="stat-row"><span class="stat-key">TIME LIMIT</span><span class="stat-val warn">20:00 MIN</span></div>
+        <div class="stat-row"><span class="stat-key">LIVES / RETRIES</span><span class="stat-val">UNLIMITED</span></div>
+        <div class="stat-row"><span class="stat-key">MODULES</span><span class="stat-val accent">4 (ANY ORDER)</span></div>
+        <div class="stat-row"><span class="stat-key">HINTS</span><span class="stat-val">3 PER GAME</span></div>
+        <div class="stat-row"><span class="stat-key">SAVE PROGRESS</span><span class="stat-val green">AUTO (LOCAL)</span></div>
+        <div class="stat-row"><span class="stat-key">CREW STATUS</span><span class="stat-val danger">0 ACTIVE</span></div>
+        <div class="stat-row"><span class="stat-key">HULL INTEGRITY</span><span class="stat-val warn">71%</span></div>
+      </div>
+
+      <!-- DIFFICULTY -->
+      <div class="diff-card">
+        <div class="stats-card-label">DIFFICULTY ASSESSMENT</div>
+        <div class="diff-overall">
+          <div class="diff-score">6</div>
+          <div class="diff-label-wrap">
+            <div class="diff-label">INTERMEDIATE</div>
+            <div class="diff-sublabel">Out of 10 — recommended for<br>first-time players</div>
+          </div>
+        </div>
+
+        <div class="diff-bar-wrap">
+          <div class="diff-bar-label"><span>Logic</span><span>7/10</span></div>
+          <div class="diff-bar-track"><div class="diff-bar-fill" style="--bar-color:var(--accent)" data-width="70%"></div></div>
+        </div>
+        <div class="diff-bar-wrap">
+          <div class="diff-bar-label"><span>Observation</span><span>5/10</span></div>
+          <div class="diff-bar-track"><div class="diff-bar-fill" style="--bar-color:var(--purple)" data-width="50%"></div></div>
+        </div>
+        <div class="diff-bar-wrap">
+          <div class="diff-bar-label"><span>Time pressure</span><span>8/10</span></div>
+          <div class="diff-bar-track"><div class="diff-bar-fill" style="--bar-color:var(--danger)" data-width="80%"></div></div>
+        </div>
+        <div class="diff-bar-wrap">
+          <div class="diff-bar-label"><span>Dexterity</span><span>3/10</span></div>
+          <div class="diff-bar-track"><div class="diff-bar-fill" style="--bar-color:var(--green)" data-width="30%"></div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- OBJECTIVES -->
+  <div class="section-label">PRIMARY OBJECTIVES</div>
+  <div class="objectives">
+    <ul class="obj-list">
+      <li class="obj-item">
+        <div class="obj-num">01</div>
+        <div class="obj-body">
+          <div class="obj-title">Restore all four station modules</div>
+          <div class="obj-desc">O2 Control, Reactor Bay, Communications Array, and Med Bay must each be repaired. Modules can be completed in any order — each releases one encrypted keycode fragment.</div>
+        </div>
+        <div class="obj-badge"><span class="badge badge--accent">PRIMARY</span></div>
+      </li>
+      <li class="obj-item">
+        <div class="obj-num">02</div>
+        <div class="obj-body">
+          <div class="obj-title">Collect all four keycode fragments</div>
+          <div class="obj-desc">Each repaired module drops one fragment (A–D). All four are required to unlock the escape pod's launch sequence. Fragments are saved automatically — you won't lose them if you navigate away.</div>
+        </div>
+        <div class="obj-badge"><span class="badge badge--accent">PRIMARY</span></div>
+      </li>
+      <li class="obj-item">
+        <div class="obj-num">03</div>
+        <div class="obj-body">
+          <div class="obj-title">Launch the escape pod before time runs out</div>
+          <div class="obj-desc">You have exactly 20 minutes of emergency power. The timer runs continuously across all rooms. If it reaches 00:00, life support fails and the mission is over.</div>
+        </div>
+        <div class="obj-badge"><span class="badge badge--danger">CRITICAL</span></div>
+      </li>
+      <li class="obj-item">
+        <div class="obj-num">04</div>
+        <div class="obj-body">
+          <div class="obj-title">Find out what happened to the crew</div>
+          <div class="obj-desc">Environmental storytelling is woven into each module. Lore fragments, log entries, and anomalies hint at the fate of Erebus Station's original crew — if you have time to look.</div>
+        </div>
+        <div class="obj-badge"><span class="badge badge--muted">OPTIONAL</span></div>
+      </li>
+    </ul>
+  </div>
+
+  <!-- MODULE TABLE -->
+  <div class="section-label">MODULE BREAKDOWN</div>
+  <div class="module-table">
+    <div class="module-table-header">
+      <span>Module</span>
+      <span>Puzzle type</span>
+      <span>Difficulty</span>
+      <span>Est. time</span>
+      <span>Fragment</span>
+    </div>
+
+    <div class="module-row">
+      <div>
+        <div class="mod-name" style="color:var(--accent)">O2 Control</div>
+        <div class="mod-type">Valve sequence</div>
+      </div>
+      <div class="mod-type">Pattern / deduction<br><span style="font-size:10px;color:var(--dim)">Toggle switches, prime logic</span></div>
+      <div class="mod-pips">
+        <div class="pip lit" style="--card-color:var(--accent)"></div>
+        <div class="pip lit" style="--card-color:var(--accent)"></div>
+        <div class="pip"></div>
+      </div>
+      <div class="mod-time">3 – 5 min</div>
+      <div class="mod-id">FRAG-A</div>
+    </div>
+
+    <div class="module-row">
+      <div>
+        <div class="mod-name" style="color:var(--orange)">Reactor Bay</div>
+        <div class="mod-type">Pipe routing</div>
+      </div>
+      <div class="mod-type">Spatial / logic<br><span style="font-size:10px;color:var(--dim)">Rotate tiles to complete circuit</span></div>
+      <div class="mod-pips">
+        <div class="pip lit" style="--card-color:var(--orange)"></div>
+        <div class="pip lit" style="--card-color:var(--orange)"></div>
+        <div class="pip lit" style="--card-color:var(--orange)"></div>
+      </div>
+      <div class="mod-time">5 – 8 min</div>
+      <div class="mod-id">FRAG-B</div>
+    </div>
+
+    <div class="module-row">
+      <div>
+        <div class="mod-name" style="color:var(--purple)">Comms Array</div>
+        <div class="mod-type">Signal decode</div>
+      </div>
+      <div class="mod-type">Cipher / translation<br><span style="font-size:10px;color:var(--dim)">Morse code, reference clue</span></div>
+      <div class="mod-pips">
+        <div class="pip lit" style="--card-color:var(--purple)"></div>
+        <div class="pip"></div>
+        <div class="pip"></div>
+      </div>
+      <div class="mod-time">2 – 4 min</div>
+      <div class="mod-id">FRAG-C</div>
+    </div>
+
+    <div class="module-row">
+      <div>
+        <div class="mod-name" style="color:var(--green)">Med Bay</div>
+        <div class="mod-type">DNA cipher</div>
+      </div>
+      <div class="mod-type">Symbol mapping<br><span style="font-size:10px;color:var(--dim)">Decode base-pair sequence</span></div>
+      <div class="mod-pips">
+        <div class="pip lit" style="--card-color:var(--green)"></div>
+        <div class="pip lit" style="--card-color:var(--green)"></div>
+        <div class="pip"></div>
+      </div>
+      <div class="mod-time">3 – 5 min</div>
+      <div class="mod-id">FRAG-D</div>
+    </div>
+
+  </div>
+
+  <!-- RULES -->
+  <div class="section-label">RULES &amp; MECHANICS</div>
+  <div class="rules-grid">
+    <div class="rule-card" style="--card-color:var(--warn)">
+      <div class="rule-icon">⏱</div>
+      <div>
+        <div class="rule-title">One shared timer</div>
+        <div class="rule-desc">The 20-minute countdown runs across all pages simultaneously. Navigating between rooms does not pause or reset it.</div>
+      </div>
+    </div>
+    <div class="rule-card" style="--card-color:var(--accent)">
+      <div class="rule-icon">↗</div>
+      <div>
+        <div class="rule-title">Non-linear order</div>
+        <div class="rule-desc">All four modules are accessible from the start. Tackle them in any order you choose — no module is gated by another.</div>
+      </div>
+    </div>
+    <div class="rule-card" style="--card-color:var(--green)">
+      <div class="rule-icon">💾</div>
+      <div>
+        <div class="rule-title">Auto-save</div>
+        <div class="rule-desc">Completed modules and collected fragments are saved locally. Refreshing a puzzle room will not erase your progress.</div>
+      </div>
+    </div>
+    <div class="rule-card" style="--card-color:var(--purple)">
+      <div class="rule-icon">?</div>
+      <div>
+        <div class="rule-title">Three hints</div>
+        <div class="rule-desc">Each playthrough gives you 3 global hints. Use them wisely — hints reveal the logic behind the puzzle, not the answer directly.</div>
+      </div>
+    </div>
+    <div class="rule-card" style="--card-color:var(--danger)">
+      <div class="rule-icon">✕</div>
+      <div>
+        <div class="rule-title">Wrong answers have consequences</div>
+        <div class="rule-desc">Incorrect inputs in some modules trigger a 15-second lockout penalty. Plan before you guess.</div>
+      </div>
+    </div>
+    <div class="rule-card" style="--card-color:var(--muted)">
+      <div class="rule-icon">↺</div>
+      <div>
+        <div class="rule-title">Restart anytime</div>
+        <div class="rule-desc">A full reset clears all progress and restores the timer. Accessible from the hub at any time during the game.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-row">
+    <div class="cta-text">
+      <div class="cta-title">Ready to board Erebus Station?</div>
+      <div class="cta-sub">Timer begins immediately on entering the hub. Good luck, Engineer.</div>
+    </div>
+    <a href="hub.html" class="begin-btn" id="begin-btn" onclick="handleBegin()">
+      <span>BEGIN MISSION ›</span>
+    </a>
+  </div>
+
+</main>
+
+<!-- BOTTOM HUD -->
+<div class="hud-bar">
+  <div class="hud-item"><div class="hud-dot"></div>BRIEFING MODE — TIMER INACTIVE</div>
+  <div class="hud-item">FILE: <span>2347-E // EREBUS STATION</span></div>
+  <div class="hud-item">CLASSIFICATION: <span>RESTRICTED</span></div>
+</div>
+
+<script>
+  /* Animate difficulty bars after paint */
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      document.querySelectorAll('.diff-bar-fill').forEach(el => {
+        el.style.width = el.dataset.width;
+      });
+    }, 400);
+  });
+
+  /* Reset timer if starting fresh */
+  function handleBegin() {
+    const existing = localStorage.getItem('erebus-time');
+    if (!existing) {
+      localStorage.setItem('erebus-time', 20 * 60);
+    }
+  }
+
+  /* Show "resume" if a game is already in progress */
+  window.addEventListener('DOMContentLoaded', () => {
+    const state = JSON.parse(localStorage.getItem('erebus') || '{}');
+    const time = parseInt(localStorage.getItem('erebus-time') || '1200', 10);
+    const count = ['A','B','C','D'].filter(id => !!state[id]).length;
+    const btn = document.getElementById('begin-btn');
+
+    if (count > 0 || time < 1200) {
+      btn.querySelector('span').textContent = `RESUME MISSION (${count}/4) ›`;
+      btn.style.borderColor = 'var(--warn)';
+      btn.style.color = 'var(--warn)';
+      btn.style.setProperty('--hover-bg', 'rgba(255,170,0,0.08)');
+
+      const sub = document.querySelector('.cta-sub');
+      const mins = Math.floor(time / 60).toString().padStart(2,'0');
+      const secs = (time % 60).toString().padStart(2,'0');
+      sub.textContent = `${count} of 4 modules complete — ${mins}:${secs} remaining.`;
+
+      /* also add a reset option */
+      const reset = document.createElement('button');
+      reset.textContent = 'RESET';
+      reset.style.cssText = `
+        font-family:var(--font-hud);font-size:10px;letter-spacing:0.2em;
+        padding:15px 18px;border:1px solid var(--muted);color:var(--muted);
+        background:transparent;cursor:pointer;margin-left:10px;
+      `;
+      reset.onclick = () => {
+        if (confirm('Reset all progress and restart the timer?')) {
+          localStorage.removeItem('erebus');
+          localStorage.removeItem('erebus-time');
+          location.reload();
+        }
+      };
+      btn.parentNode.appendChild(reset);
+    }
+  });
+</script>
+
+</body>
+</html>
