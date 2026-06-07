@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EREBUS — Reactor Bay</title>
+  <link rel="stylesheet" href="../styles.css">
+  <style>
+
+    .room-bg {
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 40% 60% at 80% 50%, rgba(255,100,0,0.05) 0%, transparent 70%),
+        radial-gradient(ellipse 30% 40% at 20% 30%, rgba(200,60,0,0.04) 0%, transparent 60%);
+      pointer-events: none; z-index: 1;
+    }
+
+    .topbar { justify-content: space-between; }
+    .topbar-left { display: flex; align-items: center; gap: 16px; }
+    .breadcrumb {
+      font-family: var(--font-mono); font-size: 10px; color: var(--muted);
+      letter-spacing: 0.1em; display: flex; align-items: center; gap: 8px;
+    }
+    .breadcrumb a { color: var(--muted); text-decoration: none; transition: color 0.2s; }
+    .breadcrumb a:hover { color: var(--orange); }
+    .breadcrumb .sep { color: var(--dim); }
+    .breadcrumb .current { color: var(--orange); }
+    .timer-wrap { display: flex; align-items: center; gap: 10px; }
+    .timer-label { font-family: var(--font-mono); font-size: 10px; color: var(--muted); letter-spacing: 0.1em; }
+
+    .room-shell {
+      max-width: 900px; margin: 0 auto;
+      padding: 32px 28px 100px; position: relative; z-index: 10;
+    }
+
+    .room-header {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      margin-bottom: 28px; opacity: 0; animation: fadeIn 0.6s ease 0.1s forwards;
+    }
+    .room-tag {
+      font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.2em;
+      color: var(--orange); margin-bottom: 8px; display: flex; align-items: center; gap: 8px;
+    }
+    .room-tag::before {
+      content: ''; width: 6px; height: 6px; border-radius: 50%;
+      background: var(--orange); animation: pulse 2s infinite;
+    }
+    .room-title {
+      font-family: var(--font-hud); font-size: 26px; font-weight: 900;
+      color: #e8f4f8; letter-spacing: 0.08em;
+    }
+
+    .room-body {
+      display: grid; grid-template-columns: 1fr 280px;
+      gap: 20px; align-items: start;
+    }
+    @media (max-width: 680px) { .room-body { grid-template-columns: 1fr; } }
+
+    /* ── LORE LOG ── */
+    .lore-log {
+      border: 1px solid var(--border); background: var(--panel);
+      padding: 20px 22px; margin-bottom: 20px; position: relative;
+      opacity: 0; animation: fadeIn 0.6s ease 0.2s forwards;
+    }
+    .lore-log::after {
+      content: ''; position: absolute; top: 0; left: 0;
+      width: 3px; height: 100%; background: var(--orange);
+    }
+    .log-entry {
+      font-family: var(--font-mono); font-size: 12px; line-height: 1.9; color: var(--text);
+    }
+    .log-entry .ts  { color: var(--muted); }
+    .log-entry .hi  { color: var(--orange); }
+    .log-entry .alert { color: var(--danger); }
+
+    /* ── PIPE GRID ── */
+    .pipe-panel {
+      border: 1px solid var(--border); background: var(--panel);
+      padding: 24px; position: relative;
+      opacity: 0; animation: fadeIn 0.6s ease 0.3s forwards;
+    }
+    .pipe-panel-label {
+      position: absolute; top: -9px; left: 20px;
+      font-family: var(--font-mono); font-size: 10px; color: var(--muted);
+      background: var(--panel); padding: 0 8px; letter-spacing: 0.1em;
+    }
+
+    .grid-wrap {
+      display: flex; justify-content: center;
+      margin: 12px 0 20px;
+    }
+
+    .pipe-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 64px);
+      grid-template-rows: repeat(5, 64px);
+      gap: 4px;
+    }
+
+    .tile {
+      width: 64px; height: 64px;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      position: relative;
+      transition: border-color 0.2s;
+      user-select: none;
+    }
+    .tile:hover:not(.fixed) { border-color: var(--border-hi); }
+    .tile.fixed { cursor: default; }
+    .tile.lit   { border-color: rgba(255,107,0,0.5); background: rgba(255,107,0,0.04); }
+
+    /* pipe segments drawn with CSS */
+    .tile svg {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      overflow: visible;
+    }
+    .pipe-seg {
+      stroke: var(--dim); stroke-width: 10;
+      stroke-linecap: square; fill: none;
+      transition: stroke 0.3s;
+    }
+    .tile.lit .pipe-seg { stroke: var(--orange); }
+    .tile.source .pipe-seg { stroke: var(--orange); }
+    .tile.target .pipe-seg { stroke: var(--green); }
+    .tile.target.lit .pipe-seg { stroke: var(--green); }
+
+    .tile-label {
+      position: absolute; bottom: 3px; right: 5px;
+      font-family: var(--font-hud); font-size: 8px;
+      color: var(--dim); letter-spacing: 0.05em;
+      pointer-events: none;
+    }
+    .tile.source .tile-label { color: var(--orange); }
+    .tile.target .tile-label { color: var(--green); }
+
+    /* corner accents for source/target */
+    .tile.source::before, .tile.target::before {
+      content: ''; position: absolute;
+      top: 0; left: 0; width: 8px; height: 8px;
+      border-top: 2px solid var(--orange); border-left: 2px solid var(--orange);
+    }
+    .tile.target::before {
+      border-color: var(--green);
+    }
+
+    .panel-footer {
+      display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+    }
+    .submit-btn {
+      font-family: var(--font-hud); font-size: 11px; font-weight: 700;
+      letter-spacing: 0.2em; padding: 12px 24px;
+      border: 1px solid var(--orange); color: var(--orange);
+      background: transparent; cursor: pointer; transition: all 0.2s;
+    }
+    .submit-btn:hover:not(:disabled) { background: rgba(255,107,0,0.08); }
+    .submit-btn:disabled { border-color: var(--muted); color: var(--muted); cursor: not-allowed; }
+    .reset-btn {
+      font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.15em;
+      padding: 12px 16px; border: 1px solid var(--border); color: var(--muted);
+      background: transparent; cursor: pointer; transition: all 0.2s;
+    }
+    .reset-btn:hover { border-color: var(--muted); color: var(--text); }
+    .feedback {
+      font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; flex: 1;
+    }
+    .feedback.ok   { color: var(--green); }
+    .feedback.fail { color: var(--danger); }
+
+    .lockout-bar {
+      position: absolute; bottom: 0; left: 0; height: 2px;
+      background: var(--danger); width: 100%;
+      transform: scaleX(0); transform-origin: left; transition: none;
+    }
+    .lockout-bar.animating { transform: scaleX(1); transition: transform 15s linear; }
+
+    /* ── SIDE PANELS ── */
+    .side-panels { display: flex; flex-direction: column; gap: 16px; }
+
+    .info-panel {
+      border: 1px solid var(--border); background: var(--panel); padding: 20px 22px;
+      opacity: 0; animation: fadeIn 0.6s ease 0.4s forwards;
+    }
+    .panel-title {
+      font-family: var(--font-hud); font-size: 9px; letter-spacing: 0.25em; color: var(--muted);
+      border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 14px;
+    }
+    .info-text {
+      font-family: var(--font-mono); font-size: 11px; line-height: 1.85; color: var(--text);
+    }
+    .info-text strong { color: var(--orange); font-weight: normal; }
+
+    .legend-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 6px 0; border-bottom: 1px solid rgba(26,46,61,0.4);
+      font-family: var(--font-mono); font-size: 10px; color: var(--muted);
+    }
+    .legend-row:last-child { border-bottom: none; }
+    .legend-swatch {
+      width: 28px; height: 8px; border-radius: 2px; flex-shrink: 0;
+    }
+
+    .hint-panel {
+      border: 1px solid var(--border); background: var(--panel); padding: 20px 22px;
+      opacity: 0; animation: fadeIn 0.6s ease 0.5s forwards;
+    }
+    .hint-btn {
+      width: 100%; font-family: var(--font-hud); font-size: 10px; letter-spacing: 0.18em;
+      padding: 10px; border: 1px solid var(--warn); color: var(--warn);
+      background: transparent; cursor: pointer; transition: all 0.2s;
+    }
+    .hint-btn:hover:not(:disabled) { background: rgba(255,170,0,0.06); }
+    .hint-btn:disabled { border-color: var(--dim); color: var(--dim); cursor: not-allowed; }
+    .hint-text {
+      font-family: var(--font-mono); font-size: 11px; line-height: 1.8; color: var(--warn);
+      margin-top: 12px; display: none;
+    }
+    .hint-text.visible { display: block; }
+
+    /* ── SUCCESS OVERLAY ── */
+    .success-overlay {
+      position: fixed; inset: 0; background: rgba(6,10,15,0.92); z-index: 300;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity 0.5s;
+    }
+    .success-overlay.show { opacity: 1; pointer-events: all; }
+    .success-card {
+      border: 1px solid var(--green); background: var(--panel);
+      padding: 48px 52px; text-align: center; max-width: 460px; width: 90%; position: relative;
+    }
+    .success-card::before, .success-card::after {
+      content: ''; position: absolute; height: 2px; left: 0; right: 0;
+      background: linear-gradient(90deg, transparent, var(--green), transparent);
+    }
+    .success-card::before { top: 0; } .success-card::after { bottom: 0; }
+    .success-icon { font-family: var(--font-hud); font-size: 48px; color: var(--green); margin-bottom: 20px; display: block; }
+    .success-title { font-family: var(--font-hud); font-size: 18px; font-weight: 700; color: #e8f4f8; letter-spacing: 0.1em; margin-bottom: 10px; }
+    .success-sub { font-family: var(--font-mono); font-size: 12px; color: var(--muted); letter-spacing: 0.05em; line-height: 1.8; margin-bottom: 8px; }
+    .fragment-reveal {
+      font-family: var(--font-hud); font-size: 28px; font-weight: 900; color: var(--green);
+      letter-spacing: 0.3em; margin: 20px 0 28px;
+      border: 1px solid rgba(0,255,136,0.3); padding: 14px 24px; display: inline-block;
+    }
+    .success-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .success-btn {
+      font-family: var(--font-hud); font-size: 10px; font-weight: 700; letter-spacing: 0.2em;
+      padding: 12px 22px; border: 1px solid var(--accent); color: var(--accent);
+      background: transparent; cursor: pointer; text-decoration: none; transition: all 0.2s;
+    }
+    .success-btn:hover { background: rgba(0,212,255,0.08); }
+    .success-btn.secondary { border-color: var(--border); color: var(--muted); }
+    .success-btn.secondary:hover { border-color: var(--muted); color: var(--text); }
+    .lore-reveal {
+      margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--border);
+      font-family: var(--font-mono); font-size: 11px; color: var(--muted);
+      line-height: 1.8; text-align: left;
+    }
+    .lore-reveal strong { color: var(--warn); font-weight: normal; }
+
+  </style>
+</head>
+<body>
+
+<div class="scanlines"></div>
+<div class="vignette"></div>
+<div class="room-bg"></div>
+
+<!-- SUCCESS OVERLAY -->
+<div class="success-overlay" id="success-overlay">
+  <div class="success-card">
+    <span class="success-icon">✓</span>
+    <div class="success-title">REACTOR ONLINE</div>
+    <div class="success-sub">Power routed to main grid.<br>Fragment B recovered from reactor console.</div>
+    <div class="fragment-reveal" id="fragment-display">8823</div>
+    <div class="success-sub" style="font-size:10px">Fragment saved automatically.</div>
+    <div class="success-actions">
+      <a href="../hub.html" class="success-btn">‹ RETURN TO HUB</a>
+      <button class="success-btn secondary" onclick="document.getElementById('success-overlay').classList.remove('show')">VIEW ROOM</button>
+    </div>
+    <div class="lore-reveal">
+      <strong>// RECOVERED LOG — ENGINEER VASQUEZ — DAY 88</strong><br>
+      "Reactor went into emergency shutdown at 03:00. No fault in the core — someone manually rerouted the conduits. The path makes no sense unless you're trying to isolate Lab 7 from the rest of the grid. Petrov won't explain why."
+    </div>
+  </div>
+</div>
+
+<!-- TOP BAR -->
+<header class="topbar">
+  <div class="topbar-left">
+    <div class="breadcrumb">
+      <a href="../hub.html">HUB</a>
+      <span class="sep">/</span>
+      <span class="current">MODULE B — REACTOR BAY</span>
+    </div>
+  </div>
+  <div class="timer-wrap">
+    <div class="timer-label">TIME REMAINING</div>
+    <div class="timer" id="timer">20:00</div>
+  </div>
+  <div class="badge badge--warn" style="font-size:9px">FRAG B</div>
+</header>
+
+<main class="room-shell">
+
+  <div class="room-header">
+    <div>
+      <div class="room-tag">MODULE B // SECTOR 6 // POWER SYSTEMS</div>
+      <div class="room-title">Reactor Core</div>
+    </div>
+    <div style="text-align:right">
+      <div class="hint-counter" style="font-family:var(--font-mono);font-size:10px;color:var(--muted);letter-spacing:0.1em;margin-bottom:8px">
+        HINTS REMAINING: <span id="hint-count" style="color:var(--warn)">3</span>
+      </div>
+      <div class="badge badge--danger">REACTOR OFFLINE</div>
+    </div>
+  </div>
+
+  <div class="room-body">
+    <div>
+
+      <!-- LORE -->
+      <div class="lore-log">
+        <div class="panel-label">SCHEMATIC PLACARD — REACTOR CONTROL PANEL</div>
+        <div class="log-entry">
+          <span class="ts">// POWER ROUTING SYSTEM — EMERGENCY MANUAL OVERRIDE //</span><br>
+          Reactor core is isolated. Energy must flow from the<br>
+          <span class="hi">CORE [top-left]</span> to the <span class="hi">MAIN CONDUIT [bottom-right]</span>.<br><br>
+          Click tiles to <span class="alert">rotate pipe segments</span> until a continuous<br>
+          path connects core to conduit. Then hit ENERGIZE.<br><br>
+          <span class="ts">// Warning: incorrect routing triggers 15s safety lockout //</span>
+        </div>
+      </div>
+
+      <!-- PIPE PUZZLE -->
+      <div class="pipe-panel" id="pipe-panel">
+        <div class="pipe-panel-label">POWER CONDUIT ROUTING GRID — 5×5</div>
+        <div class="grid-wrap">
+          <div class="pipe-grid" id="pipe-grid"></div>
+        </div>
+        <div class="panel-footer">
+          <button class="submit-btn" id="submit-btn" onclick="checkSolution()">ENERGIZE</button>
+          <button class="reset-btn" onclick="resetPuzzle()">RESET</button>
+          <div class="feedback" id="feedback"></div>
+        </div>
+        <div class="lockout-bar" id="lockout-bar"></div>
+      </div>
+
+    </div>
+
+    <!-- SIDE -->
+    <div class="side-panels">
+
+      <div class="info-panel">
+        <div class="panel-title">HOW TO PLAY</div>
+        <div class="info-text">
+          <strong>Click</strong> any tile to rotate it 90°.<br><br>
+          Connect the reactor <strong>CORE</strong> (top-left) to the <strong>CONDUIT</strong> (bottom-right) with an unbroken pipe path.<br><br>
+          Fixed tiles <strong>cannot</strong> be rotated — work around them.
+        </div>
+        <div style="margin-top:14px">
+          <div class="legend-row"><div class="legend-swatch" style="background:var(--orange)"></div>Active / lit path</div>
+          <div class="legend-row"><div class="legend-swatch" style="background:var(--green)"></div>Conduit reached</div>
+          <div class="legend-row"><div class="legend-swatch" style="background:var(--dim)"></div>Inactive pipe</div>
+          <div class="legend-row"><div class="legend-swatch" style="border:1px solid var(--border);background:var(--panel-2)"></div>Fixed tile</div>
+        </div>
+      </div>
+
+      <div class="hint-panel">
+        <div class="panel-title">REQUEST HINT</div>
+        <button class="hint-btn" id="hint-btn" onclick="useHint()">USE HINT (3 remaining)</button>
+        <div class="hint-text" id="hint-text"></div>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<!-- BOTTOM HUD -->
+<div class="hud-bar">
+  <div class="hud-item"><div class="hud-dot" style="background:var(--orange)"></div>REACTOR: <span id="hud-reactor">OFFLINE</span></div>
+  <div class="hud-item">PATH: <span id="hud-path">INCOMPLETE</span></div>
+  <div class="hud-item">STATUS: <span id="hud-status">UNSOLVED</span></div>
+</div>
+
+<script>
+  /* ══════════════════════════════════════
+     PIPE TYPES
+     Each tile has a type defining which
+     sides it connects: N E S W (0=top)
+     Types:
+       'I'  — straight (N-S)
+       'L'  — corner   (N-E)
+       'T'  — T-junction (N-E-S)
+       'X'  — cross    (all four)
+     Rotation just shifts which sides are open.
+  ══════════════════════════════════════ */
+
+  // Sides: [N, E, S, W]
+  const PIPE_CONNECTIONS = {
+    I: [[0,1,0,1],[1,0,1,0]],           // 2 rotations
+    L: [[1,1,0,0],[0,1,1,0],[0,0,1,1],[1,0,0,1]], // 4 rotations
+    T: [[1,1,0,1],[1,1,1,0],[0,1,1,1],[1,0,1,1]], // 4 rotations
+    X: [[1,1,1,1]],                      // 1 rotation (symmetric)
+  };
+
+  // The 5×5 grid definition
+  // type, rotation, fixed?
+  // Solution path: (0,0)→(0,1)→(1,1)→(1,2)→(1,3)→(2,3)→(3,3)→(3,4)→(4,4)
+  const GRID_DEF = [
+    // row 0
+    { type:'L', rot:1, fixed:true  }, // 0,0 SOURCE — connects E,S
+    { type:'I', rot:1, fixed:false },  // 0,1
+    { type:'L', rot:0, fixed:false },  // 0,2
+    { type:'I', rot:0, fixed:true  },  // 0,3
+    { type:'L', rot:3, fixed:false },  // 0,4
+    // row 1
+    { type:'L', rot:2, fixed:false },  // 1,0
+    { type:'T', rot:0, fixed:false },  // 1,1
+    { type:'L', rot:1, fixed:false },  // 1,2
+    { type:'I', rot:0, fixed:false },  // 1,3
+    { type:'L', rot:2, fixed:false },  // 1,4
+    // row 2
+    { type:'I', rot:0, fixed:true  },  // 2,0
+    { type:'L', rot:3, fixed:false },  // 2,1
+    { type:'I', rot:0, fixed:false },  // 2,2
+    { type:'T', rot:3, fixed:false },  // 2,3
+    { type:'I', rot:0, fixed:false },  // 2,4
+    // row 3
+    { type:'L', rot:0, fixed:false },  // 3,0
+    { type:'I', rot:1, fixed:false },  // 3,1
+    { type:'L', rot:3, fixed:false },  // 3,2
+    { type:'I', rot:0, fixed:false },  // 3,3
+    { type:'L', rot:2, fixed:false },  // 3,4
+    // row 4
+    { type:'I', rot:1, fixed:true  },  // 4,0
+    { type:'L', rot:0, fixed:false },  // 4,1
+    { type:'I', rot:1, fixed:false },  // 4,2
+    { type:'L', rot:2, fixed:false },  // 4,3
+    { type:'L', rot:2, fixed:true  },  // 4,4 TARGET — connects N,W
+  ];
+
+  // Solution rotations (what each tile needs to be at)
+  const SOLUTION_ROTS = [
+    1,1,3,0,3,
+    2,0,1,0,2,
+    0,3,0,3,0,
+    0,1,3,0,2,
+    1,0,1,2,2,
+  ];
+
+  const FRAGMENT  = '8823';
+  const GRID_SIZE = 5;
+
+  let tileRots  = GRID_DEF.map(t => t.rot);
+  let solved    = false;
+  let lockedOut = false;
+  let hintsLeft = 3;
+
+  const hints = [
+    "Pipe tiles connect on the sides shown glowing. Click to rotate. Start from the top-left CORE and trace a path by eye toward the bottom-right CONDUIT.",
+    "Look at the fixed tiles — they cannot rotate, so they constrain the path. The route goes generally right and down: across the top, then down column 1 or 2, then across to the right.",
+    "Trace this route: (0,0)→right→(0,1)→down→(1,1)→right→(1,2)→right→(1,3)→down→(2,3)→down→(3,3)→right→(3,4)→down→(4,4). Rotate tiles to match."
+  ];
+
+  /* ── TIMER ── */
+  let totalSeconds = 20 * 60;
+  const savedTime  = localStorage.getItem('erebus-time');
+  if (savedTime) totalSeconds = parseInt(savedTime, 10);
+  const timerEl = document.getElementById('timer');
+  function fmt(s){ return `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`; }
+  timerEl.textContent = fmt(totalSeconds);
+  const timerInterval = setInterval(() => {
+    totalSeconds--;
+    localStorage.setItem('erebus-time', totalSeconds);
+    timerEl.textContent = fmt(totalSeconds);
+    if (totalSeconds <= 60) timerEl.classList.add('critical');
+    if (totalSeconds <= 0) {
+      clearInterval(timerInterval);
+      document.body.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:'Orbitron',sans-serif;font-size:28px;color:#ff3b3b;letter-spacing:0.15em;text-align:center;flex-direction:column;gap:16px;background:#060a0f;"><div>LIFE SUPPORT FAILURE</div><div style="font-size:12px;color:#4a6a7a;font-family:'Share Tech Mono',monospace;letter-spacing:0.2em">MISSION FAILED — <a href="../hub.html" style="color:#00d4ff">RETURN TO HUB</a></div></div>`;
+    }
+  }, 1000);
+
+  /* ── CONNECTIONS HELPER ── */
+  function getConns(idx) {
+    const { type } = GRID_DEF[idx];
+    const rot = tileRots[idx];
+    const variants = PIPE_CONNECTIONS[type];
+    return variants[rot % variants.length];
+  }
+
+  /* ── SVG PIPE DRAWING ── */
+  function pipeSVG(conns) {
+    // conns = [N, E, S, W]
+    const cx = 32, cy = 32, r = 32;
+    let paths = '';
+    if (conns[0]) paths += `<line class="pipe-seg" x1="${cx}" y1="${cy}" x2="${cx}" y2="0"/>`;
+    if (conns[1]) paths += `<line class="pipe-seg" x1="${cx}" y1="${cy}" x2="64" y2="${cy}"/>`;
+    if (conns[2]) paths += `<line class="pipe-seg" x1="${cx}" y1="${cy}" x2="${cx}" y2="64"/>`;
+    if (conns[3]) paths += `<line class="pipe-seg" x1="${cx}" y1="${cy}" x2="0" y2="${cy}"/>`;
+    // center dot
+    paths += `<circle cx="${cx}" cy="${cy}" r="5" fill="var(--dim)" class="pipe-center"/>`;
+    return `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">${paths}</svg>`;
+  }
+
+  /* ── BUILD GRID ── */
+  function buildGrid() {
+    const grid = document.getElementById('pipe-grid');
+    grid.innerHTML = '';
+    GRID_DEF.forEach((def, idx) => {
+      const row = Math.floor(idx / GRID_SIZE);
+      const col = idx % GRID_SIZE;
+      const div = document.createElement('div');
+      div.className = `tile${def.fixed ? ' fixed' : ''}`;
+      div.id = `tile-${idx}`;
+      if (idx === 0) div.classList.add('source');
+      if (idx === 24) div.classList.add('target');
+      if (!def.fixed) div.onclick = () => rotateTile(idx);
+
+      const label = idx === 0 ? 'CORE' : idx === 24 ? 'CONDUIT' : '';
+      div.innerHTML = pipeSVG(getConns(idx)) + (label ? `<div class="tile-label">${label}</div>` : '');
+      grid.appendChild(div);
+    });
+    tracePath();
+  }
+
+  /* ── ROTATE ── */
+  function rotateTile(idx) {
+    if (lockedOut || solved) return;
+    const { type } = GRID_DEF[idx];
+    const variants = PIPE_CONNECTIONS[type];
+    tileRots[idx] = (tileRots[idx] + 1) % variants.length;
+    const tile = document.getElementById(`tile-${idx}`);
+    tile.innerHTML = pipeSVG(getConns(idx)) + (idx === 0 ? '<div class="tile-label">CORE</div>' : idx === 24 ? '<div class="tile-label">CONDUIT</div>' : '');
+    tracePath();
+    setFeedback('', '');
+  }
+
+  /* ── PATH TRACING (flood fill from source) ── */
+  function tracePath() {
+    const lit = new Set();
+    const queue = [0];
+    lit.add(0);
+
+    while (queue.length) {
+      const idx = queue.shift();
+      const row = Math.floor(idx / GRID_SIZE);
+      const col = idx % GRID_SIZE;
+      const conns = getConns(idx);
+
+      // N
+      if (conns[0] && row > 0) {
+        const nIdx = idx - GRID_SIZE;
+        if (!lit.has(nIdx) && getConns(nIdx)[2]) { lit.add(nIdx); queue.push(nIdx); }
+      }
+      // E
+      if (conns[1] && col < GRID_SIZE - 1) {
+        const nIdx = idx + 1;
+        if (!lit.has(nIdx) && getConns(nIdx)[3]) { lit.add(nIdx); queue.push(nIdx); }
+      }
+      // S
+      if (conns[2] && row < GRID_SIZE - 1) {
+        const nIdx = idx + GRID_SIZE;
+        if (!lit.has(nIdx) && getConns(nIdx)[0]) { lit.add(nIdx); queue.push(nIdx); }
+      }
+      // W
+      if (conns[3] && col > 0) {
+        const nIdx = idx - 1;
+        if (!lit.has(nIdx) && getConns(nIdx)[1]) { lit.add(nIdx); queue.push(nIdx); }
+      }
+    }
+
+    // Update visuals
+    GRID_DEF.forEach((_, idx) => {
+      const tile = document.getElementById(`tile-${idx}`);
+      tile.classList.toggle('lit', lit.has(idx));
+      // recolor SVG center dot
+      const circle = tile.querySelector('.pipe-center');
+      if (circle) circle.setAttribute('fill', lit.has(idx) ? 'var(--orange)' : 'var(--dim)');
+    });
+
+    const pathComplete = lit.has(24);
+    document.getElementById('hud-path').textContent    = pathComplete ? 'COMPLETE' : 'INCOMPLETE';
+    document.getElementById('hud-path').style.color    = pathComplete ? 'var(--green)' : 'var(--warn)';
+    document.getElementById('hud-reactor').textContent = pathComplete ? 'READY' : 'OFFLINE';
+    document.getElementById('hud-reactor').style.color = pathComplete ? 'var(--green)' : 'var(--warn)';
+
+    return pathComplete;
+  }
+
+  /* ── CHECK SOLUTION ── */
+  function checkSolution() {
+    if (lockedOut || solved) return;
+    const pathOk = tracePath();
+    if (!pathOk) {
+      setFeedback('No complete path detected. Keep rotating tiles.', 'fail');
+      return;
+    }
+    // Path exists — verify it's actually the correct rotation solution
+    // (any valid connected path wins — the puzzle is path-based not rotation-exact)
+    handleSolve();
+  }
+
+  function handleSolve() {
+    solved = true;
+    clearInterval(timerInterval);
+    const state = JSON.parse(localStorage.getItem('erebus') || '{}');
+    state.B = FRAGMENT;
+    localStorage.setItem('erebus', JSON.stringify(state));
+    setFeedback('CORRECT — power restored. Fragment B recovered.', 'ok');
+    document.getElementById('hud-status').textContent = 'SOLVED';
+    document.getElementById('hud-status').style.color = 'var(--green)';
+    setTimeout(() => document.getElementById('success-overlay').classList.add('show'), 800);
+  }
+
+  function resetPuzzle() {
+    if (lockedOut || solved) return;
+    tileRots = GRID_DEF.map(t => t.rot);
+    buildGrid();
+    setFeedback('', '');
+  }
+
+  function triggerLockout() {
+    lockedOut = true;
+    document.getElementById('submit-btn').disabled = true;
+    const bar = document.getElementById('lockout-bar');
+    bar.classList.remove('animating'); void bar.offsetWidth;
+    bar.classList.add('animating');
+    setTimeout(() => {
+      lockedOut = false;
+      document.getElementById('submit-btn').disabled = false;
+      bar.classList.remove('animating');
+      setFeedback('System unlocked. Try again.', '');
+    }, 15000);
+  }
+
+  function setFeedback(msg, type) {
+    const el = document.getElementById('feedback');
+    el.textContent = msg;
+    el.className = `feedback${type ? ' ' + type : ''}`;
+  }
+
+  function useHint() {
+    if (hintsLeft <= 0 || solved) return;
+    const used = 3 - hintsLeft;
+    document.getElementById('hint-text').textContent = hints[used];
+    document.getElementById('hint-text').classList.add('visible');
+    hintsLeft--;
+    document.getElementById('hint-count').textContent = hintsLeft;
+    document.getElementById('hint-btn').textContent = `USE HINT (${hintsLeft} remaining)`;
+    if (hintsLeft <= 0) document.getElementById('hint-btn').disabled = true;
+    const state = JSON.parse(localStorage.getItem('erebus') || '{}');
+    state.hintsUsed = (state.hintsUsed || 0) + 1;
+    localStorage.setItem('erebus', JSON.stringify(state));
+  }
+
+  /* ── INIT ── */
+  window.addEventListener('DOMContentLoaded', () => {
+    const state = JSON.parse(localStorage.getItem('erebus') || '{}');
+    if (state.B) {
+      solved = true;
+      tileRots = [...SOLUTION_ROTS];
+      buildGrid();
+      setFeedback('Reactor already online. Fragment B: ' + FRAGMENT, 'ok');
+      document.getElementById('hud-status').textContent = 'SOLVED';
+      document.getElementById('hud-status').style.color = 'var(--green)';
+      document.getElementById('submit-btn').disabled = true;
+    } else {
+      buildGrid();
+    }
+    const globalHintsUsed = state.hintsUsed || 0;
+    hintsLeft = Math.max(0, 3 - globalHintsUsed);
+    document.getElementById('hint-count').textContent = hintsLeft;
+    document.getElementById('hint-btn').textContent = `USE HINT (${hintsLeft} remaining)`;
+    if (hintsLeft <= 0) document.getElementById('hint-btn').disabled = true;
+  });
+
+  buildGrid();
+</script>
+</body>
+</html>
