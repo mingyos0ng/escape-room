@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EREBUS — Med Bay</title>
+  <link rel="stylesheet" href="../styles.css">
+  <style>
+
+    .room-bg {
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 40% 60% at 30% 70%, rgba(0,255,136,0.04) 0%, transparent 70%),
+        radial-gradient(ellipse 30% 40% at 70% 20%, rgba(0,180,100,0.03) 0%, transparent 60%);
+      pointer-events: none; z-index: 1;
+    }
+
+    .topbar { justify-content: space-between; }
+    .topbar-left { display: flex; align-items: center; gap: 16px; }
+    .breadcrumb {
+      font-family: var(--font-mono); font-size: 10px; color: var(--muted);
+      letter-spacing: 0.1em; display: flex; align-items: center; gap: 8px;
+    }
+    .breadcrumb a { color: var(--muted); text-decoration: none; transition: color 0.2s; }
+    .breadcrumb a:hover { color: var(--green); }
+    .breadcrumb .sep { color: var(--dim); }
+    .breadcrumb .current { color: var(--green); }
+    .timer-wrap { display: flex; align-items: center; gap: 10px; }
+    .timer-label { font-family: var(--font-mono); font-size: 10px; color: var(--muted); letter-spacing: 0.1em; }
+
+    .room-shell {
+      max-width: 860px; margin: 0 auto;
+      padding: 32px 28px 100px; position: relative; z-index: 10;
+    }
+
+    .room-header {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      margin-bottom: 28px; opacity: 0; animation: fadeIn 0.6s ease 0.1s forwards;
+    }
+    .room-tag {
+      font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.2em;
+      color: var(--green); margin-bottom: 8px; display: flex; align-items: center; gap: 8px;
+    }
+    .room-tag::before {
+      content: ''; width: 6px; height: 6px; border-radius: 50%;
+      background: var(--green); animation: pulse 2s infinite;
+    }
+    .room-title {
+      font-family: var(--font-hud); font-size: 26px; font-weight: 900;
+      color: #e8f4f8; letter-spacing: 0.08em;
+    }
+
+    .room-body {
+      display: grid; grid-template-columns: 1fr 300px;
+      gap: 20px; align-items: start;
+    }
+    @media (max-width: 680px) { .room-body { grid-template-columns: 1fr; } }
+
+    /* ── LORE LOG ── */
+    .lore-log {
+      border: 1px solid var(--border); background: var(--panel);
+      padding: 20px 22px; margin-bottom: 20px; position: relative;
+      opacity: 0; animation: fadeIn 0.6s ease 0.2s forwards;
+    }
+    .lore-log::after {
+      content: ''; position: absolute; top: 0; left: 0;
+      width: 3px; height: 100%; background: var(--green);
+    }
+    .log-entry {
+      font-family: var(--font-mono); font-size: 12px; line-height: 1.9; color: var(--text);
+    }
+    .log-entry .ts    { color: var(--muted); }
+    .log-entry .hi    { color: var(--green); }
+    .log-entry .alert { color: var(--danger); }
+
+    /* ── SPECIMEN CABINET ── */
+    .cabinet {
+      border: 1px solid var(--border); background: var(--panel);
+      padding: 28px; position: relative; margin-bottom: 20px;
+      opacity: 0; animation: fadeIn 0.6s ease 0.3s forwards;
+    }
+    .cabinet-label {
+      position: absolute; top: -9px; left: 20px;
+      font-family: var(--font-mono); font-size: 10px; color: var(--muted);
+      background: var(--panel); padding: 0 8px; letter-spacing: 0.1em;
+    }
+
+    /* legend */
+    .legend-title {
+      font-family: var(--font-hud); font-size: 9px; letter-spacing: 0.2em;
+      color: var(--muted); margin-bottom: 12px;
+    }
+    .legend-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+      margin-bottom: 24px;
+    }
+    .legend-card {
+      border: 1px solid var(--border); background: var(--panel-2);
+      padding: 12px 8px; text-align: center;
+    }
+    .base-symbol {
+      font-family: var(--font-hud); font-size: 22px; font-weight: 900;
+      margin-bottom: 6px; line-height: 1;
+    }
+    .base-name {
+      font-family: var(--font-mono); font-size: 9px; color: var(--muted);
+      letter-spacing: 0.1em; margin-bottom: 6px;
+    }
+    .base-value {
+      font-family: var(--font-hud); font-size: 18px; font-weight: 700; color: #e8f4f8;
+    }
+
+    /* sequence display */
+    .sequence-title {
+      font-family: var(--font-hud); font-size: 9px; letter-spacing: 0.2em;
+      color: var(--muted); margin-bottom: 12px;
+    }
+    .sequence-display {
+      display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px;
+    }
+    .base-pair {
+      border: 1px solid var(--border); background: var(--panel-2);
+      padding: 10px 8px; text-align: center; min-width: 44px;
+      transition: border-color 0.3s, background 0.3s;
+    }
+    .base-pair.active {
+      border-color: var(--green); background: rgba(0,255,136,0.04);
+    }
+    .bp-base {
+      font-family: var(--font-hud); font-size: 16px; font-weight: 900;
+      line-height: 1; margin-bottom: 4px;
+    }
+    .bp-digit {
+      font-family: var(--font-mono); font-size: 11px; color: var(--muted);
+      transition: color 0.3s;
+    }
+    .base-pair.active .bp-digit { color: var(--green); }
+
+    .sequence-note {
+      font-family: var(--font-mono); font-size: 10px; color: var(--muted);
+      margin-top: 8px; letter-spacing: 0.05em;
+    }
+
+    /* ── TERMINAL ── */
+    .terminal {
+      border: 1px solid var(--border); background: var(--panel);
+      padding: 20px 22px; position: relative;
+      opacity: 0; animation: fadeIn 0.6s ease 0.4s forwards;
+    }
+    .terminal-label {
+      position: absolute; top: -9px; left: 20px;
+      font-family: var(--font-mono); font-size: 10px; color: var(--muted);
+      background: var(--panel); padding: 0 8px; letter-spacing: 0.1em;
+    }
+    .terminal-prompt { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+    .prompt-sym { font-family: var(--font-mono); font-size: 14px; color: var(--green); }
+    .terminal-input {
+      font-family: var(--font-hud); font-size: 24px; font-weight: 700;
+      letter-spacing: 0.3em; background: transparent; border: none; outline: none;
+      color: #e8f4f8; width: 100%; caret-color: var(--green);
+    }
+    .terminal-input::placeholder { color: var(--dim); letter-spacing: 0.2em; font-size: 20px; }
+    .terminal-underline { height: 1px; background: var(--border); margin-bottom: 16px; position: relative; }
+    .terminal-underline.active::after,
+    .terminal-input:focus + .terminal-underline::after {
+      content: ''; position: absolute; bottom: 0; left: 0;
+      height: 1px; background: var(--green); width: 100%;
+    }
+
+    .submit-row { display: flex; gap: 12px; align-items: center; }
+    .submit-btn {
+      font-family: var(--font-hud); font-size: 11px; font-weight: 700;
+      letter-spacing: 0.2em; padding: 12px 24px;
+      border: 1px solid var(--green); color: var(--green);
+      background: transparent; cursor: pointer; transition: all 0.2s;
+    }
+    .submit-btn:hover:not(:disabled) { background: rgba(0,255,136,0.08); }
+    .submit-btn:disabled { border-color: var(--muted); color: var(--muted); cursor: not-allowed; }
+    .clear-btn {
+      font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.15em;
+      padding: 12px 16px; border: 1px solid var(--border); color: var(--muted);
+      background: transparent; cursor: pointer; transition: all 0.2s;
+    }
+    .clear-btn:hover { border-color: var(--muted); color: var(--text); }
+    .feedback {
+      font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; flex: 1;
+    }
+    .feedback.ok   { color: var(--green); }
+    .feedback.fail { color: var(--danger); }
+    .feedback.warn { color: var(--warn); }
+
+    .lockout-bar {
+      position: absolute; bottom: 0; left: 0; height: 2px;
+      background: var(--danger); width: 100%;
+      transform: scaleX(0); transform-origin: left; transition: none;
+    }
+    .lockout-bar.animating { transform: scaleX(1); transition: transform 15s linear; }
+
+    /* ── SIDE PANELS ── */
+    .side-panels { display: flex; flex-direction: column; gap: 16px; }
+
+    .info-panel {
+      border: 1px solid var(--border); background: var(--panel); padding: 20px 22px;
+      opacity: 0; animation: fadeIn 0.6s ease 0.4s forwards;
+    }
+    .panel-title {
+      font-family: var(--font-hud); font-size: 9px; letter-spacing: 0.25em; color: var(--muted);
+      border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 14px;
+    }
+    .info-text {
+      font-family: var(--font-mono); font-size: 11px; line-height: 1.85; color: var(--text);
+    }
+    .info-text strong { color: var(--green); font-weight: normal; }
+
+    /* attempt history */
+    .history-panel {
+      border: 1px solid var(--border); background: var(--panel); padding: 20px 22px;
+      opacity: 0; animation: fadeIn 0.6s ease 0.45s forwards;
+    }
+    .attempt-list { list-style: none; }
+    .attempt-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 6px 0; border-bottom: 1px solid rgba(26,46,61,0.4);
+      font-family: var(--font-mono); font-size: 10px;
+    }
+    .attempt-item:last-child { border-bottom: none; }
+    .attempt-val { color: var(--text); letter-spacing: 0.1em; }
+    .attempt-result.fail { color: var(--danger); }
+    .attempt-result.ok   { color: var(--green); }
+    .no-attempts { font-family: var(--font-mono); font-size: 11px; color: var(--dim); }
+
+    .hint-panel {
+      border: 1px solid var(--border); background: var(--panel); padding: 20px 22px;
+      opacity: 0; animation: fadeIn 0.6s ease 0.5s forwards;
+    }
+    .hint-title {
+      font-family: var(--font-hud); font-size: 9px; letter-spacing: 0.25em; color: var(--muted);
+      border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 14px;
+    }
+    .hint-btn {
+      width: 100%; font-family: var(--font-hud); font-size: 10px; letter-spacing: 0.18em;
+      padding: 10px; border: 1px solid var(--warn); color: var(--warn);
+      background: transparent; cursor: pointer; transition: all 0.2s;
+    }
+    .hint-btn:hover:not(:disabled) { background: rgba(255,170,0,0.06); }
+    .hint-btn:disabled { border-color: var(--dim); color: var(--dim); cursor: not-allowed; }
+    .hint-text {
+      font-family: var(--font-mono); font-size: 11px; line-height: 1.8;
+      color: var(--warn); margin-top: 12px; display: none;
+    }
+    .hint-text.visible { display: block; }
+
+    /* ── SUCCESS OVERLAY ── */
+    .success-overlay {
+      position: fixed; inset: 0; background: rgba(6,10,15,0.92); z-index: 300;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity 0.5s;
+    }
+    .success-overlay.show { opacity: 1; pointer-events: all; }
+    .success-card {
+      border: 1px solid var(--green); background: var(--panel);
+      padding: 48px 52px; text-align: center; max-width: 460px; width: 90%; position: relative;
+    }
+    .success-card::before, .success-card::after {
+      content: ''; position: absolute; height: 2px; left: 0; right: 0;
+      background: linear-gradient(90deg, transparent, var(--green), transparent);
+    }
+    .success-card::before { top: 0; } .success-card::after { bottom: 0; }
+    .success-icon { font-size: 48px; color: var(--green); margin-bottom: 20px; display: block; }
+    .success-title { font-family: var(--font-hud); font-size: 18px; font-weight: 700; color: #e8f4f8; letter-spacing: 0.1em; margin-bottom: 10px; }
+    .success-sub { font-family: var(--font-mono); font-size: 12px; color: var(--muted); letter-spacing: 0.05em; line-height: 1.8; margin-bottom: 8px; }
+    .fragment-reveal {
+      font-family: var(--font-hud); font-size: 28px; font-weight: 900; color: var(--green);
+      letter-spacing: 0.3em; margin: 20px 0 28px;
+      border: 1px solid rgba(0,255,136,0.3); padding: 14px 24px; display: inline-block;
+    }
+    .success-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .success-btn {
+      font-family: var(--font-hud); font-size: 10px; font-weight: 700; letter-spacing: 0.2em;
+      padding: 12px 22px; border: 1px solid var(--accent); color: var(--accent);
+      background: transparent; cursor: pointer; text-decoration: none; transition: all 0.2s;
+    }
+    .success-btn:hover { background: rgba(0,212,255,0.08); }
+    .success-btn.secondary { border-color: var(--border); color: var(--muted); }
+    .success-btn.secondary:hover { border-color: var(--muted); color: var(--text); }
+    .lore-reveal {
+      margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--border);
+      font-family: var(--font-mono); font-size: 11px; color: var(--muted);
+      line-height: 1.8; text-align: left;
+    }
+    .lore-reveal strong { color: var(--warn); font-weight: normal; }
+
+  </style>
+</head>
+<body>
+
+<div class="scanlines"></div>
+<div class="vignette"></div>
+<div class="room-bg"></div>
+
+<!-- SUCCESS OVERLAY -->
+<div class="success-overlay" id="success-overlay">
+  <div class="success-card">
+    <span class="success-icon">✓</span>
+    <div class="success-title">STORAGE UNLOCKED</div>
+    <div class="success-sub">Specimen cabinet access granted.<br>Fragment D recovered from secure storage.</div>
+    <div class="fragment-reveal">5502</div>
+    <div class="success-sub" style="font-size:10px">Fragment saved automatically.</div>
+    <div class="success-actions">
+      <a href="../hub.html" class="success-btn">‹ RETURN TO HUB</a>
+      <button class="success-btn secondary" onclick="document.getElementById('success-overlay').classList.remove('show')">VIEW ROOM</button>
+    </div>
+    <div class="lore-reveal">
+      <strong>// DR. PETROV — PERSONAL LOG — DAY 91 — ENCRYPTED</strong><br>
+      "The spores reached the med bay overnight. Yuen is showing symptoms. I've locked the samples in cabinet D7 using the sequence lock — only someone who knows the mapping can open it. If you're reading this, you found the legend. The samples are proof of what Helix Corp was doing in Lab 7. Don't let them disappear."
+    </div>
+  </div>
+</div>
+
+<!-- TOP BAR -->
+<header class="topbar">
+  <div class="topbar-left">
+    <div class="breadcrumb">
+      <a href="../hub.html">HUB</a>
+      <span class="sep">/</span>
+      <span class="current">MODULE D — MED BAY</span>
+    </div>
+  </div>
+  <div class="timer-wrap">
+    <div class="timer-label">TIME REMAINING</div>
+    <div class="timer" id="timer">20:00</div>
+  </div>
+  <div class="badge" style="font-size:9px;color:var(--green);border:1px solid var(--green);padding:4px 10px;font-family:var(--font-mono);letter-spacing:0.15em">FRAG D</div>
+</header>
+
+<main class="room-shell">
+
+  <div class="room-header">
+    <div>
+      <div class="room-tag">MODULE D // SECTOR 8 // MEDICAL</div>
+      <div class="room-title">Medical Bay</div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-family:var(--font-mono);font-size:10px;color:var(--muted);letter-spacing:0.1em;margin-bottom:8px">
+        HINTS REMAINING: <span id="hint-count" style="color:var(--warn)">3</span>
+      </div>
+      <div class="badge badge--warn">CABINET LOCKED</div>
+    </div>
+  </div>
+
+  <div class="room-body">
+    <div>
+
+      <!-- LORE -->
+      <div class="lore-log">
+        <div class="panel-label">SPECIMEN CABINET D7 — ACCESS PANEL</div>
+        <div class="log-entry">
+          <span class="ts">// GENETIC SEQUENCER LOCK — HELIX CORP BIOSTORAGE //</span><br>
+          Cabinet is secured with a <span class="hi">DNA sequence cipher</span>.<br>
+          A base-pair legend is printed on the cabinet door.<br><br>
+          Read the <span class="hi">sample sequence</span> and convert each<br>
+          base to its corresponding digit.<br>
+          Enter the resulting number to unlock.<br><br>
+          <span class="ts">// Legend and sequence are both visible below //</span>
+        </div>
+      </div>
+
+      <!-- CABINET PUZZLE -->
+      <div class="cabinet" id="cabinet-panel">
+        <div class="cabinet-label">SPECIMEN CABINET D7 — BIOSTORAGE LOCK</div>
+
+        <!-- LEGEND -->
+        <div class="legend-title">BASE-PAIR LEGEND — PRINTED ON CABINET DOOR</div>
+        <div class="legend-grid">
+          <div class="legend-card">
+            <div class="base-symbol" style="color:#00d4ff">A</div>
+            <div class="base-name">ADENINE</div>
+            <div class="base-value">1</div>
+          </div>
+          <div class="legend-card">
+            <div class="base-symbol" style="color:#ffaa00">T</div>
+            <div class="base-name">THYMINE</div>
+            <div class="base-value">2</div>
+          </div>
+          <div class="legend-card">
+            <div class="base-symbol" style="color:#cc44ff">G</div>
+            <div class="base-name">GUANINE</div>
+            <div class="base-value">3</div>
+          </div>
+          <div class="legend-card">
+            <div class="base-symbol" style="color:#00ff88">C</div>
+            <div class="base-name">CYTOSINE</div>
+            <div class="base-value">4</div>
+          </div>
+        </div>
+
+        <!-- SEQUENCE -->
+        <div class="sequence-title">SAMPLE SEQUENCE — LABEL ON SPECIMEN JAR</div>
+        <div class="sequence-display" id="sequence-display"></div>
+        <div class="sequence-note">Read left to right. Convert each base using the legend above.</div>
+
+      </div>
+
+      <!-- TERMINAL -->
+      <div class="terminal" id="terminal-panel">
+        <div class="terminal-label">CABINET UNLOCK — ENTER DIGIT SEQUENCE</div>
+        <div class="terminal-prompt">
+          <span class="prompt-sym">&gt;_</span>
+          <input
+            class="terminal-input"
+            id="code-input"
+            type="text"
+            maxlength="8"
+            placeholder="······"
+            autocomplete="off"
+            spellcheck="false"
+            inputmode="numeric"
+            onkeydown="if(event.key==='Enter') checkSolution()"
+            oninput="highlightSequence(this.value)"
+          >
+        </div>
+        <div class="terminal-underline" id="term-underline"></div>
+        <div class="submit-row">
+          <button class="submit-btn" id="submit-btn" onclick="checkSolution()">UNLOCK</button>
+          <button class="clear-btn" onclick="clearInput()">CLEAR</button>
+          <div class="feedback" id="feedback"></div>
+        </div>
+        <div class="lockout-bar" id="lockout-bar"></div>
+      </div>
+
+    </div>
+
+    <!-- SIDE -->
+    <div class="side-panels">
+
+      <div class="info-panel">
+        <div class="panel-title">HOW TO SOLVE</div>
+        <div class="info-text">
+          Look at the <strong>base-pair legend</strong> on the cabinet door.<br><br>
+          Each DNA base maps to a digit:<br>
+          <strong>A=1, T=2, G=3, C=4</strong><br><br>
+          Read the <strong>sample sequence</strong> from left to right and write down the digit for each base.<br><br>
+          Enter the full number to unlock the cabinet.
+        </div>
+      </div>
+
+      <div class="history-panel">
+        <div class="panel-title">ATTEMPT HISTORY</div>
+        <ul class="attempt-list" id="attempt-list">
+          <li class="no-attempts" id="no-attempts">No attempts yet.</li>
+        </ul>
+      </div>
+
+      <div class="hint-panel">
+        <div class="hint-title">REQUEST HINT</div>
+        <button class="hint-btn" id="hint-btn" onclick="useHint()">USE HINT (3 remaining)</button>
+        <div class="hint-text" id="hint-text"></div>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<!-- BOTTOM HUD -->
+<div class="hud-bar">
+  <div class="hud-item"><div class="hud-dot" style="background:var(--green);box-shadow:0 0 4px var(--green)"></div>CABINET D7: <span id="hud-cabinet">LOCKED</span></div>
+  <div class="hud-item">ATTEMPTS: <span id="hud-attempts">0</span></div>
+  <div class="hud-item">STATUS: <span id="hud-status">UNSOLVED</span></div>
+</div>
+
+<script>
+  /* ══════════════════════
+     PUZZLE DATA
+     Sequence: G T A C T G
+     Mapping:  A=1 T=2 G=3 C=4
+     Answer:   321423 → wait, let's do:
+     Sequence: T A C C T A  → 2 1 4 4 2 1 → nope
+     Sequence: G A C T G A  → 3 1 4 2 3 1 → nope
+     Using: C T A T G C → 4 2 1 2 3 4 → "412234" hmm
+     Let's use answer 5502 mapped cleanly:
+     We'll define the sequence to produce "5502" but
+     our legend only goes 1-4, so let's use a clean answer.
+     Answer: 321421 — sequence: G A T A C A... wait
+     Keep it simple: answer = "314214"
+     Sequence: G A T C A T → 3 1 2 4 1 2
+     Answer: 312412... let's just hardcode a clean one.
+
+     FINAL:
+     Sequence: A T G C T A  (6 bases)
+     Answer:   1 2 3 4 2 1  → "123421"
+     Fragment display stays 5502 (stored value, not the code itself)
+  ══════════════════════ */
+
+  const SEQUENCE = ['A','T','G','C','T','A'];
+  const BASE_MAP = { A:1, T:2, G:3, C:4 };
+  const BASE_COLOR = { A:'#00d4ff', T:'#ffaa00', G:'#cc44ff', C:'#00ff88' };
+  const SOLUTION  = '123421';
+  const FRAGMENT  = '5502';
+
+  const hints = [
+    "Use the legend on the cabinet door. Each letter maps to a number: A=1, T=2, G=3, C=4. Read the sequence from left to right.",
+    "The sequence is A T G C T A. Converting each: A→1, T→2, G→3, C→4, T→2, A→1.",
+    "The answer is 123421. Type it into the terminal and hit UNLOCK."
+  ];
+
+  let attempts  = [];
+  let solved    = false;
+  let lockedOut = false;
+  let hintsLeft = 3;
+
+  /* ── TIMER ── */
+  let totalSeconds = 20 * 60;
+  const savedTime = localStorage.getItem('erebus-time');
+  if (savedTime) totalSeconds = parseInt(savedTime, 10);
+  const timerEl = document.getElementById('timer');
+  function fmt(s){ return `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`; }
+  timerEl.textContent = fmt(totalSeconds);
+  const timerInterval = setInterval(() => {
+    totalSeconds--;
+    localStorage.setItem('erebus-time', totalSeconds);
+    timerEl.textContent = fmt(totalSeconds);
+    if (totalSeconds <= 60) timerEl.classList.add('critical');
+    if (totalSeconds <= 0) {
+      clearInterval(timerInterval);
+      document.body.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:'Orbitron',sans-serif;font-size:28px;color:#ff3b3b;letter-spacing:0.15em;text-align:center;flex-direction:column;gap:16px;background:#060a0f;"><div>LIFE SUPPORT FAILURE</div><div style="font-size:12px;color:#4a6a7a;font-family:'Share Tech Mono',monospace;letter-spacing:0.2em">MISSION FAILED — <a href="../hub.html" style="color:#00d4ff">RETURN TO HUB</a></div></div>`;
+    }
+  }, 1000);
+
+  /* ── BUILD SEQUENCE ── */
+  function buildSequence() {
+    const el = document.getElementById('sequence-display');
+    el.innerHTML = '';
+    SEQUENCE.forEach((base, i) => {
+      const div = document.createElement('div');
+      div.className = 'base-pair';
+      div.id = `bp-${i}`;
+      div.innerHTML = `
+        <div class="bp-base" style="color:${BASE_COLOR[base]}">${base}</div>
+        <div class="bp-digit">${BASE_MAP[base]}</div>
+      `;
+      el.appendChild(div);
+    });
+  }
+
+  /* ── HIGHLIGHT SEQUENCE AS USER TYPES ── */
+  function highlightSequence(val) {
+    document.getElementById('term-underline').classList.add('active');
+    setFeedback('', '');
+    SEQUENCE.forEach((_, i) => {
+      const bp = document.getElementById(`bp-${i}`);
+      if (bp) bp.classList.toggle('active', i < val.length);
+    });
+  }
+
+  /* ── CLEAR ── */
+  function clearInput() {
+    document.getElementById('code-input').value = '';
+    highlightSequence('');
+    setFeedback('', '');
+  }
+
+  /* ── CHECK ── */
+  function checkSolution() {
+    if (lockedOut || solved) return;
+    const val = document.getElementById('code-input').value.trim();
+    if (!val) { setFeedback('Enter the digit sequence first.', 'warn'); return; }
+
+    attempts.push({ val, correct: val === SOLUTION });
+    updateHistory();
+    document.getElementById('hud-attempts').textContent = attempts.length;
+
+    if (val === SOLUTION) {
+      handleSolve();
+    } else {
+      triggerLockout();
+      setFeedback(`"${val}" — incorrect sequence. Cabinet locked for 15s.`, 'fail');
+    }
+  }
+
+  function handleSolve() {
+    solved = true;
+    clearInterval(timerInterval);
+    const state = JSON.parse(localStorage.getItem('erebus') || '{}');
+    state.D = FRAGMENT;
+    localStorage.setItem('erebus', JSON.stringify(state));
+    // light up all base pairs
+    SEQUENCE.forEach((_, i) => document.getElementById(`bp-${i}`)?.classList.add('active'));
+    setFeedback('CORRECT — cabinet unlocked. Fragment D recovered.', 'ok');
+    document.getElementById('hud-cabinet').textContent = 'UNLOCKED';
+    document.getElementById('hud-cabinet').style.color = 'var(--green)';
+    document.getElementById('hud-status').textContent = 'SOLVED';
+    document.getElementById('hud-status').style.color = 'var(--green)';
+    setTimeout(() => document.getElementById('success-overlay').classList.add('show'), 800);
+  }
+
+  function triggerLockout() {
+    lockedOut = true;
+    document.getElementById('submit-btn').disabled = true;
+    document.getElementById('code-input').disabled = true;
+    const bar = document.getElementById('lockout-bar');
+    bar.classList.remove('animating'); void bar.offsetWidth;
+    bar.classList.add('animating');
+    setTimeout(() => {
+      lockedOut = false;
+      document.getElementById('submit-btn').disabled = false;
+      document.getElementById('code-input').disabled = false;
+      document.getElementById('code-input').focus();
+      bar.classList.remove('animating');
+      setFeedback('Cabinet unlocked. Try again.', '');
+    }, 15000);
+  }
+
+  function setFeedback(msg, type) {
+    const el = document.getElementById('feedback');
+    el.textContent = msg;
+    el.className = `feedback${type ? ' ' + type : ''}`;
+  }
+
+  function updateHistory() {
+    const list = document.getElementById('attempt-list');
+    document.getElementById('no-attempts')?.remove();
+    list.innerHTML = '';
+    [...attempts].reverse().slice(0, 6).forEach(a => {
+      const li = document.createElement('li');
+      li.className = 'attempt-item';
+      li.innerHTML = `
+        <span class="attempt-val">${a.val}</span>
+        <span class="attempt-result ${a.correct ? 'ok' : 'fail'}">${a.correct ? '✓ CORRECT' : '✗ WRONG'}</span>
+      `;
+      list.appendChild(li);
+    });
+  }
+
+  function useHint() {
+    if (hintsLeft <= 0 || solved) return;
+    const used = 3 - hintsLeft;
+    document.getElementById('hint-text').textContent = hints[used];
+    document.getElementById('hint-text').classList.add('visible');
+    hintsLeft--;
+    document.getElementById('hint-count').textContent = hintsLeft;
+    document.getElementById('hint-btn').textContent = `USE HINT (${hintsLeft} remaining)`;
+    if (hintsLeft <= 0) document.getElementById('hint-btn').disabled = true;
+    const state = JSON.parse(localStorage.getItem('erebus') || '{}');
+    state.hintsUsed = (state.hintsUsed || 0) + 1;
+    localStorage.setItem('erebus', JSON.stringify(state));
+  }
+
+  /* ── INIT ── */
+  window.addEventListener('DOMContentLoaded', () => {
+    buildSequence();
+    const state = JSON.parse(localStorage.getItem('erebus') || '{}');
+    if (state.D) {
+      solved = true;
+      document.getElementById('code-input').value = SOLUTION;
+      document.getElementById('code-input').disabled = true;
+      document.getElementById('submit-btn').disabled = true;
+      highlightSequence(SOLUTION);
+      setFeedback('Cabinet already unlocked. Fragment D: ' + FRAGMENT, 'ok');
+      document.getElementById('hud-cabinet').textContent = 'UNLOCKED';
+      document.getElementById('hud-cabinet').style.color = 'var(--green)';
+      document.getElementById('hud-status').textContent = 'SOLVED';
+      document.getElementById('hud-status').style.color = 'var(--green)';
+    }
+    const globalHintsUsed = state.hintsUsed || 0;
+    hintsLeft = Math.max(0, 3 - globalHintsUsed);
+    document.getElementById('hint-count').textContent = hintsLeft;
+    document.getElementById('hint-btn').textContent = `USE HINT (${hintsLeft} remaining)`;
+    if (hintsLeft <= 0) document.getElementById('hint-btn').disabled = true;
+  });
+</script>
+</body>
+</html>
