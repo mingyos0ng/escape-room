@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EREBUS — Comms Array</title>
+  <link rel="stylesheet" href="../styles.css">
+  <style>
+
+    .room-bg {
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 40% 60% at 50% 20%, rgba(180,50,255,0.05) 0%, transparent 70%),
+        radial-gradient(ellipse 30% 40% at 80% 80%, rgba(100,0,200,0.04) 0%, transparent 60%);
+      pointer-events: none; z-index: 1;
+    }
+
+    .topbar { justify-content: space-between; }
+    .topbar-left { display: flex; align-items: center; gap: 16px; }
+    .breadcrumb {
+      font-family: var(--font-mono); font-size: 10px; color: var(--muted);
+      letter-spacing: 0.1em; display: flex; align-items: center; gap: 8px;
+    }
+    .breadcrumb a { color: var(--muted); text-decoration: none; transition: color 0.2s; }
+    .breadcrumb a:hover { color: var(--purple); }
+    .breadcrumb .sep { color: var(--dim); }
+    .breadcrumb .current { color: var(--purple); }
+    .timer-wrap { display: flex; align-items: center; gap: 10px; }
+    .timer-label { font-family: var(--font-mono); font-size: 10px; color: var(--muted); letter-spacing: 0.1em; }
+
+    .room-shell {
+      max-width: 860px; margin: 0 auto;
+      padding: 32px 28px 100px; position: relative; z-index: 10;
+    }
+
+    .room-header {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      margin-bottom: 28px; opacity: 0; animation: fadeIn 0.6s ease 0.1s forwards;
+    }
+    .room-tag {
+      font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.2em;
+      color: var(--purple); margin-bottom: 8px; display: flex; align-items: center; gap: 8px;
+    }
+    .room-tag::before {
+      content: ''; width: 6px; height: 6px; border-radius: 50%;
+      background: var(--purple); animation: pulse 2s infinite;
+    }
+    .room-title {
+      font-family: var(--font-hud); font-size: 26px; font-weight: 900;
+      color: #e8f4f8; letter-spacing: 0.08em;
+    }
+
+    .room-body {
+      display: grid; grid-template-columns: 1fr 300px;
+      gap: 20px; align-items: start;
+    }
+    @media (max-width: 680px) { .room-body { grid-template-columns: 1fr; } }
+
+    /* ── LORE LOG ── */
+    .lore-log {
+      border: 1px solid var(--border); background: var(--panel);
+      padding: 20px 22px; margin-bottom: 20px; position: relative;
+      opacity: 0; animation: fadeIn 0.6s ease 0.2s forwards;
+    }
+    .lore-log::after {
+      content: ''; position: absolute; top: 0; left: 0;
+      width: 3px; height: 100%; background: var(--purple);
+    }
+    .log-entry {
+      font-family: var(--font-mono); font-size: 12px; line-height: 1.9; color: var(--text);
+    }
+    .log-entry .ts    { color: var(--muted); }
+    .log-entry .hi    { color: var(--purple); }
+    .log-entry .alert { color: var(--danger); }
+
+    /* ── SIGNAL PANEL ── */
+    .signal-panel {
+      border: 1px solid var(--border); background: var(--panel);
+      padding: 28px; position: relative; margin-bottom: 20px;
+      opacity: 0; animation: fadeIn 0.6s ease 0.3s forwards;
+    }
+    .signal-panel-label {
+      position: absolute; top: -9px; left: 20px;
+      font-family: var(--font-mono); font-size: 10px; color: var(--muted);
+      background: var(--panel); padding: 0 8px; letter-spacing: 0.1em;
+    }
+
+    /* waveform visualizer */
+    .waveform {
+      background: var(--panel-2); border: 1px solid var(--border);
+      padding: 18px 20px; margin-bottom: 20px; position: relative; overflow: hidden;
+    }
+    .waveform::before {
+      content: 'INCOMING SIGNAL — CH.7 EMERGENCY BAND';
+      position: absolute; top: 8px; left: 12px;
+      font-family: var(--font-mono); font-size: 9px; color: var(--muted); letter-spacing: 0.12em;
+    }
+    .waveform-line {
+      display: flex; align-items: center; gap: 6px;
+      margin-top: 18px; flex-wrap: wrap;
+    }
+    .morse-word { display: flex; gap: 4px; align-items: center; margin-right: 12px; }
+    .morse-char { display: flex; gap: 3px; align-items: center; }
+
+    .dot, .dash {
+      background: var(--purple); border-radius: 2px;
+      height: 10px; display: inline-block;
+      box-shadow: 0 0 6px rgba(204,68,255,0.5);
+      animation: pulse 2s infinite;
+    }
+    .dot  { width: 10px; }
+    .dash { width: 28px; }
+    .word-gap {
+      width: 1px; height: 24px; background: var(--border); margin: 0 6px;
+    }
+
+    /* raw morse display */
+    .morse-raw {
+      font-family: var(--font-mono); font-size: 16px; letter-spacing: 0.15em;
+      color: var(--purple); margin-top: 14px; line-height: 1.6;
+      word-break: break-all;
+    }
+    .morse-raw .word-sep { color: var(--dim); margin: 0 8px; }
+
+    /* ── INPUT TERMINAL ── */
+    .terminal {
+      border: 1px solid var(--border); background: var(--panel);
+      padding: 20px 22px; position: relative;
+      opacity: 0; animation: fadeIn 0.6s ease 0.4s forwards;
+    }
+    .terminal-label {
+      position: absolute; top: -9px; left: 20px;
+      font-family: var(--font-mono); font-size: 10px; color: var(--muted);
+      background: var(--panel); padding: 0 8px; letter-spacing: 0.1em;
+    }
+    .terminal-prompt {
+      display: flex; align-items: center; gap: 12px; margin-bottom: 14px;
+    }
+    .prompt-sym {
+      font-family: var(--font-mono); font-size: 14px; color: var(--purple);
+    }
+    .terminal-input {
+      font-family: var(--font-hud); font-size: 20px; font-weight: 700;
+      letter-spacing: 0.3em; background: transparent; border: none; outline: none;
+      color: #e8f4f8; width: 100%; text-transform: uppercase; caret-color: var(--purple);
+    }
+    .terminal-input::placeholder { color: var(--dim); letter-spacing: 0.2em; }
+    .terminal-underline {
+      height: 1px; background: var(--border); margin-bottom: 16px;
+      position: relative;
+    }
+    .terminal-underline::after {
+      content: ''; position: absolute; bottom: 0; left: 0;
+      height: 1px; background: var(--purple);
+      width: 0; transition: width 0.3s;
+    }
+    .terminal-input:focus ~ .terminal-underline::after,
+    .terminal-underline.active::after { width: 100%; }
+
+    .submit-row { display: flex; gap: 12px; align-items: center; }
+    .submit-btn {
+      font-family: var(--font-hud); font-size: 11px; font-weight: 700;
+      letter-spacing: 0.2em; padding: 12px 24px;
+      border: 1px solid var(--purple); color: var(--purple);
+      background: transparent; cursor: pointer; transition: all 0.2s;
+    }
+    .submit-btn:hover:not(:disabled) { background: rgba(204,68,255,0.08); }
+    .submit-btn:disabled { border-color: var(--muted); color: var(--muted); cursor: not-allowed; }
+    .clear-btn {
+      font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.15em;
+      padding: 12px 16px; border: 1px solid var(--border); color: var(--muted);
+      background: transparent; cursor: pointer; transition: all 0.2s;
+    }
+    .clear-btn:hover { border-color: var(--muted); color: var(--text); }
+    .feedback {
+      font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; flex: 1;
+    }
+    .feedback.ok   { color: var(--green); }
+    .feedback.fail { color: var(--danger); }
+    .feedback.warn { color: var(--warn); }
+
+    .lockout-bar {
+      position: absolute; bottom: 0; left: 0; height: 2px;
+      background: var(--danger); width: 100%;
+      transform: scaleX(0); transform-origin: left; transition: none;
+    }
+    .lockout-bar.animating { transform: scaleX(1); transition: transform 15s linear; }
+
+    /* ── SIDE: MORSE CHART ── */
+    .side-panels { display: flex; flex-direction: column; gap: 16px; }
+
+    .morse-chart {
+      border: 1px solid var(--border); background: var(--panel); padding: 20px 22px;
+      opacity: 0; animation: fadeIn 0.6s ease 0.4s forwards;
+    }
+    .chart-title {
+      font-family: var(--font-hud); font-size: 9px; letter-spacing: 0.25em; color: var(--muted);
+      border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 12px;
+    }
+    .chart-note {
+      font-family: var(--font-mono); font-size: 10px; color: var(--muted);
+      margin-bottom: 10px; line-height: 1.6;
+    }
+    .chart-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 2px 12px;
+    }
+    .chart-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 3px 0; border-bottom: 1px solid rgba(26,46,61,0.3);
+      font-family: var(--font-mono); font-size: 11px;
+    }
+    .chart-row:last-child { border-bottom: none; }
+    .chart-letter { color: #e8f4f8; font-weight: bold; }
+    .chart-code   { color: var(--purple); letter-spacing: 0.1em; }
+
+    .hint-panel {
+      border: 1px solid var(--border); background: var(--panel); padding: 20px 22px;
+      opacity: 0; animation: fadeIn 0.6s ease 0.5s forwards;
+    }
+    .hint-title {
+      font-family: var(--font-hud); font-size: 9px; letter-spacing: 0.25em; color: var(--muted);
+      border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 14px;
+    }
+    .hint-btn {
+      width: 100%; font-family: var(--font-hud); font-size: 10px; letter-spacing: 0.18em;
+      padding: 10px; border: 1px solid var(--warn); color: var(--warn);
+      background: transparent; cursor: pointer; transition: all 0.2s;
+    }
+    .hint-btn:hover:not(:disabled) { background: rgba(255,170,0,0.06); }
+    .hint-btn:disabled { border-color: var(--dim); color: var(--dim); cursor: not-allowed; }
+    .hint-text {
+      font-family: var(--font-mono); font-size: 11px; line-height: 1.8;
+      color: var(--warn); margin-top: 12px; display: none;
+    }
+    .hint-text.visible { display: block; }
+
+    /* ── SUCCESS OVERLAY ── */
+    .success-overlay {
+      position: fixed; inset: 0; background: rgba(6,10,15,0.92); z-index: 300;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity 0.5s;
+    }
+    .success-overlay.show { opacity: 1; pointer-events: all; }
+    .success-card {
+      border: 1px solid var(--green); background: var(--panel);
+      padding: 48px 52px; text-align: center; max-width: 460px; width: 90%; position: relative;
+    }
+    .success-card::before, .success-card::after {
+      content: ''; position: absolute; height: 2px; left: 0; right: 0;
+      background: linear-gradient(90deg, transparent, var(--green), transparent);
+    }
+    .success-card::before { top: 0; } .success-card::after { bottom: 0; }
+    .success-icon { font-family: var(--font-hud); font-size: 48px; color: var(--green); margin-bottom: 20px; display: block; }
+    .success-title { font-family: var(--font-hud); font-size: 18px; font-weight: 700; color: #e8f4f8; letter-spacing: 0.1em; margin-bottom: 10px; }
+    .success-sub { font-family: var(--font-mono); font-size: 12px; color: var(--muted); letter-spacing: 0.05em; line-height: 1.8; margin-bottom: 8px; }
+    .fragment-reveal {
+      font-family: var(--font-hud); font-size: 28px; font-weight: 900; color: var(--green);
+      letter-spacing: 0.3em; margin: 20px 0 28px;
+      border: 1px solid rgba(0,255,136,0.3); padding: 14px 24px; display: inline-block;
+    }
+    .success-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .success-btn {
+      font-family: var(--font-hud); font-size: 10px; font-weight: 700; letter-spacing: 0.2em;
+      padding: 12px 22px; border: 1px solid var(--accent); color: var(--accent);
+      background: transparent; cursor: pointer; text-decoration: none; transition: all 0.2s;
+    }
+    .success-btn:hover { background: rgba(0,212,255,0.08); }
+    .success-btn.secondary { border-color: var(--border); color: var(--muted); }
+    .success-btn.secondary:hover { border-color: var(--muted); color: var(--text); }
+    .lore-reveal {
+      margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--border);
+      font-family: var(--font-mono); font-size: 11px; color: var(--muted);
+      line-height: 1.8; text-align: left;
+    }
+    .lore-reveal strong { color: var(--warn); font-weight: normal; }
+
+  </style>
+</head>
+<body>
+
+<div class="scanlines"></div>
+<div class="vignette"></div>
+<div class="room-bg"></div>
+
+<!-- SUCCESS OVERLAY -->
+<div class="success-overlay" id="success-overlay">
+  <div class="success-card">
+    <span class="success-icon">✓</span>
+    <div class="success-title">SIGNAL DECODED</div>
+    <div class="success-sub">Transmission authenticated.<br>Fragment C recovered from relay buffer.</div>
+    <div class="fragment-reveal">1196</div>
+    <div class="success-sub" style="font-size:10px">Fragment saved automatically.</div>
+    <div class="success-actions">
+      <a href="../hub.html" class="success-btn">‹ RETURN TO HUB</a>
+      <button class="success-btn secondary" onclick="document.getElementById('success-overlay').classList.remove('show')">VIEW ROOM</button>
+    </div>
+    <div class="lore-reveal">
+      <strong>// PARTIAL TRANSMISSION — SOURCE UNKNOWN — DAY 89</strong><br>
+      "...do not attempt to enter Lab 7. Containment is holding but the spores are airborne within that section. We are moving to Pod Bay 3. If anyone receives this — the access word is NOVA. Do not trust the—" <strong>[SIGNAL LOST]</strong>
+    </div>
+  </div>
+</div>
+
+<!-- TOP BAR -->
+<header class="topbar">
+  <div class="topbar-left">
+    <div class="breadcrumb">
+      <a href="../hub.html">HUB</a>
+      <span class="sep">/</span>
+      <span class="current">MODULE C — COMMS ARRAY</span>
+    </div>
+  </div>
+  <div class="timer-wrap">
+    <div class="timer-label">TIME REMAINING</div>
+    <div class="timer" id="timer">20:00</div>
+  </div>
+  <div class="badge" style="font-size:9px;color:var(--purple);border-color:var(--purple)">FRAG C</div>
+</header>
+
+<main class="room-shell">
+
+  <div class="room-header">
+    <div>
+      <div class="room-tag">MODULE C // SECTOR 2 // COMMUNICATIONS</div>
+      <div class="room-title">Communications Array</div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-family:var(--font-mono);font-size:10px;color:var(--muted);letter-spacing:0.1em;margin-bottom:8px">
+        HINTS REMAINING: <span id="hint-count" style="color:var(--warn)">3</span>
+      </div>
+      <div class="badge badge--warn">SIGNAL LOOPING</div>
+    </div>
+  </div>
+
+  <div class="room-body">
+    <div>
+
+      <!-- LORE -->
+      <div class="lore-log">
+        <div class="panel-label">COMMS TERMINAL — AUTO-DISPLAY</div>
+        <div class="log-entry">
+          <span class="ts">// EMERGENCY CHANNEL 7 — SIGNAL DETECTED //</span><br>
+          An encoded transmission has been looping on the<br>
+          emergency band for <span class="alert">94 days</span>. Origin: <span class="hi">internal</span>.<br><br>
+          The relay is locked behind an <span class="hi">authentication word</span>.<br>
+          Decode the transmission to find it.<br><br>
+          <span class="ts">// Use the Morse reference chart on the right panel //</span>
+        </div>
+      </div>
+
+      <!-- SIGNAL DISPLAY -->
+      <div class="signal-panel">
+        <div class="signal-panel-label">INCOMING TRANSMISSION — MORSE ENCODED</div>
+
+        <div class="waveform">
+          <div class="waveform-line" id="waveform-visual"></div>
+        </div>
+
+        <div class="morse-raw" id="morse-raw"></div>
+
+      </div>
+
+      <!-- TERMINAL INPUT -->
+      <div class="terminal" id="terminal-panel">
+        <div class="terminal-label">AUTHENTICATION INPUT — TYPE DECODED WORD</div>
+        <div class="terminal-prompt">
+          <span class="prompt-sym">&gt;_</span>
+          <input
+            class="terminal-input"
+            id="decode-input"
+            type="text"
+            maxlength="8"
+            placeholder="ENTER WORD"
+            autocomplete="off"
+            spellcheck="false"
+            onkeydown="if(event.key==='Enter') checkSolution()"
+          >
+        </div>
+        <div class="terminal-underline" id="term-underline"></div>
+        <div class="submit-row">
+          <button class="submit-btn" id="submit-btn" onclick="checkSolution()">AUTHENTICATE</button>
+          <button class="clear-btn" onclick="clearInput()">CLEAR</button>
+          <div class="feedback" id="feedback"></div>
+        </div>
+        <div class="lockout-bar" id="lockout-bar"></div>
+      </div>
+
+    </div>
+
+    <!-- SIDE -->
+    <div class="side-panels">
+
+      <!-- MORSE CHART -->
+      <div class="morse-chart">
+        <div class="chart-title">MORSE CODE REFERENCE</div>
+        <div class="chart-note">· = dot &nbsp;&nbsp; — = dash<br>/ separates letters</div>
+        <div class="chart-grid" id="morse-chart-grid"></div>
+      </div>
+
+      <!-- HINT -->
+      <div class="hint-panel">
+        <div class="hint-title">REQUEST HINT</div>
+        <button class="hint-btn" id="hint-btn" onclick="useHint()">USE HINT (3 remaining)</button>
+        <div class="hint-text" id="hint-text"></div>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<!-- BOTTOM HUD -->
+<div class="hud-bar">
+  <div class="hud-item"><div class="hud-dot" style="background:var(--purple);box-shadow:0 0 4px var(--purple)"></div>SIGNAL: <span id="hud-signal">LOOPING</span></div>
+  <div class="hud-item">CHANNEL: <span>7 — EMERGENCY BAND</span></div>
+  <div class="hud-item">STATUS: <span id="hud-status">UNAUTHENTICATED</span></div>
+</div>
+
+<script>
+  /* ══════════════════════
+     PUZZLE DATA
+     Answer: NOVA
+     Morse:  -. --- ...- .-
+  ══════════════════════ */
+  const SOLUTION = 'NOVA';
+  const FRAGMENT = '1196';
+
+  const MORSE_MAP = {
+    A:'.-', B:'-...', C:'-.-.', D:'-..', E:'.', F:'..-.',
+    G:'--.', H:'....', I:'..', J:'.---', K:'-.-', L:'.-..',
+    M:'--', N:'-.', O:'---', P:'.--.', Q:'--.-', R:'.-.',
+    S:'...', T:'-', U:'..-', V:'...-', W:'.--', X:'-..-',
+    Y:'-.--', Z:'--..'
+  };
+
+  const TRANSMISSION = 'NOVA'; // what gets encoded and displayed
+
+  const hints = [
+    "Each group of dots and dashes separated by a / represents one letter. Use the Morse chart on the right to look up each group.",
+    "Break it down: -. is N, --- is O, ...- is V, .- is A. Put them together.",
+    "The decoded word is NOVA. Type it into the terminal and hit AUTHENTICATE."
+  ];
+
+  let solved    = false;
+  let lockedOut = false;
+  let hintsLeft = 3;
+
+  /* ── TIMER ── */
+  let totalSeconds = 20 * 60;
+  const savedTime = localStorage.getItem('erebus-time');
+  if (savedTime) totalSeconds = parseInt(savedTime, 10);
+  const timerEl = document.getElementById('timer');
+  function fmt(s){ return `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`; }
+  timerEl.textContent = fmt(totalSeconds);
+  const timerInterval = setInterval(() => {
+    totalSeconds--;
+    localStorage.setItem('erebus-time', totalSeconds);
+    timerEl.textContent = fmt(totalSeconds);
+    if (totalSeconds <= 60) timerEl.classList.add('critical');
+    if (totalSeconds <= 0) {
+      clearInterval(timerInterval);
+      document.body.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:'Orbitron',sans-serif;font-size:28px;color:#ff3b3b;letter-spacing:0.15em;text-align:center;flex-direction:column;gap:16px;background:#060a0f;"><div>LIFE SUPPORT FAILURE</div><div style="font-size:12px;color:#4a6a7a;font-family:'Share Tech Mono',monospace;letter-spacing:0.2em">MISSION FAILED — <a href="../hub.html" style="color:#00d4ff">RETURN TO HUB</a></div></div>`;
+    }
+  }, 1000);
+
+  /* ── BUILD MORSE VISUAL ── */
+  function buildMorse() {
+    const rawEl = document.getElementById('morse-raw');
+    const waveEl = document.getElementById('waveform-visual');
+
+    const words = TRANSMISSION.split(' ');
+    let rawParts = [];
+    waveEl.innerHTML = '';
+
+    words.forEach((word, wi) => {
+      if (wi > 0) {
+        rawParts.push('<span class="word-sep">/</span>');
+        const gap = document.createElement('div');
+        gap.className = 'word-gap';
+        waveEl.appendChild(gap);
+      }
+
+      const wordDiv = document.createElement('div');
+      wordDiv.className = 'morse-word';
+
+      word.split('').forEach((letter, li) => {
+        const code = MORSE_MAP[letter] || '';
+        if (li > 0) rawParts.push(' / ');
+        rawParts.push(`<span style="color:var(--text)">${code}</span>`);
+
+        const charDiv = document.createElement('div');
+        charDiv.className = 'morse-char';
+        code.split('').forEach(sym => {
+          const el = document.createElement('div');
+          el.className = sym === '.' ? 'dot' : 'dash';
+          charDiv.appendChild(el);
+        });
+        wordDiv.appendChild(charDiv);
+
+        // letter gap
+        if (li < word.length - 1) {
+          const sp = document.createElement('div');
+          sp.style.cssText = 'width:8px';
+          wordDiv.appendChild(sp);
+        }
+      });
+
+      waveEl.appendChild(wordDiv);
+    });
+
+    rawEl.innerHTML = rawParts.join('');
+  }
+
+  /* ── BUILD MORSE CHART ── */
+  function buildChart() {
+    const grid = document.getElementById('morse-chart-grid');
+    Object.entries(MORSE_MAP).forEach(([letter, code]) => {
+      const row = document.createElement('div');
+      row.className = 'chart-row';
+      row.innerHTML = `<span class="chart-letter">${letter}</span><span class="chart-code">${code}</span>`;
+      grid.appendChild(row);
+    });
+  }
+
+  /* ── INPUT ── */
+  document.getElementById('decode-input').addEventListener('input', () => {
+    document.getElementById('term-underline').classList.add('active');
+    setFeedback('', '');
+  });
+
+  function clearInput() {
+    document.getElementById('decode-input').value = '';
+    setFeedback('', '');
+  }
+
+  /* ── CHECK ── */
+  function checkSolution() {
+    if (lockedOut || solved) return;
+    const val = document.getElementById('decode-input').value.trim().toUpperCase();
+    if (!val) { setFeedback('Enter a word first.', 'warn'); return; }
+
+    if (val === SOLUTION) {
+      handleSolve();
+    } else {
+      triggerLockout();
+      setFeedback(`"${val}" — authentication failed. System locked for 15s.`, 'fail');
+    }
+  }
+
+  function handleSolve() {
+    solved = true;
+    clearInterval(timerInterval);
+    const state = JSON.parse(localStorage.getItem('erebus') || '{}');
+    state.C = FRAGMENT;
+    localStorage.setItem('erebus', JSON.stringify(state));
+    setFeedback('AUTHENTICATED — relay unlocked. Fragment C recovered.', 'ok');
+    document.getElementById('hud-status').textContent = 'AUTHENTICATED';
+    document.getElementById('hud-status').style.color = 'var(--green)';
+    document.getElementById('hud-signal').textContent = 'DECODED';
+    document.getElementById('hud-signal').style.color = 'var(--green)';
+    setTimeout(() => document.getElementById('success-overlay').classList.add('show'), 800);
+  }
+
+  function triggerLockout() {
+    lockedOut = true;
+    document.getElementById('submit-btn').disabled = true;
+    document.getElementById('decode-input').disabled = true;
+    const bar = document.getElementById('lockout-bar');
+    bar.classList.remove('animating'); void bar.offsetWidth;
+    bar.classList.add('animating');
+    setTimeout(() => {
+      lockedOut = false;
+      document.getElementById('submit-btn').disabled = false;
+      document.getElementById('decode-input').disabled = false;
+      document.getElementById('decode-input').focus();
+      bar.classList.remove('animating');
+      setFeedback('System unlocked. Try again.', '');
+    }, 15000);
+  }
+
+  function setFeedback(msg, type) {
+    const el = document.getElementById('feedback');
+    el.textContent = msg;
+    el.className = `feedback${type ? ' ' + type : ''}`;
+  }
+
+  function useHint() {
+    if (hintsLeft <= 0 || solved) return;
+    const used = 3 - hintsLeft;
+    document.getElementById('hint-text').textContent = hints[used];
+    document.getElementById('hint-text').classList.add('visible');
+    hintsLeft--;
+    document.getElementById('hint-count').textContent = hintsLeft;
+    document.getElementById('hint-btn').textContent = `USE HINT (${hintsLeft} remaining)`;
+    if (hintsLeft <= 0) document.getElementById('hint-btn').disabled = true;
+    const state = JSON.parse(localStorage.getItem('erebus') || '{}');
+    state.hintsUsed = (state.hintsUsed || 0) + 1;
+    localStorage.setItem('erebus', JSON.stringify(state));
+  }
+
+  /* ── INIT ── */
+  window.addEventListener('DOMContentLoaded', () => {
+    buildMorse();
+    buildChart();
+
+    const state = JSON.parse(localStorage.getItem('erebus') || '{}');
+    if (state.C) {
+      solved = true;
+      document.getElementById('decode-input').value = SOLUTION;
+      document.getElementById('decode-input').disabled = true;
+      document.getElementById('submit-btn').disabled = true;
+      setFeedback('Signal already decoded. Fragment C: ' + FRAGMENT, 'ok');
+      document.getElementById('hud-status').textContent = 'AUTHENTICATED';
+      document.getElementById('hud-status').style.color = 'var(--green)';
+    }
+
+    const globalHintsUsed = state.hintsUsed || 0;
+    hintsLeft = Math.max(0, 3 - globalHintsUsed);
+    document.getElementById('hint-count').textContent = hintsLeft;
+    document.getElementById('hint-btn').textContent = `USE HINT (${hintsLeft} remaining)`;
+    if (hintsLeft <= 0) document.getElementById('hint-btn').disabled = true;
+  });
+</script>
+</body>
+</html>
