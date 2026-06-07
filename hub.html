@@ -645,33 +645,37 @@
   timerEl.textContent = formatTime(totalSeconds);
 
   /* ── RENDER STATE ── */
-  function renderState() {
-    const state = getState();
-    let count = 0;
+function renderState() {
+  const state = JSON.parse(localStorage.getItem('erebus') || '{}');
+  let count = 0;
 
-    ['A','B','C','D'].forEach(id => {
-      const collected = !!state[id];
-      if (collected) count++;
+  ['A','B','C','D'].forEach(id => {
+    const collected = !!state[id];
+    if (collected) count++;
 
-      const fragEl = document.getElementById(`frag-${id}`);
-      const valEl = document.getElementById(`frag-val-${id}`);
-      const modEl = document.getElementById(`mod-${id}`);
-      const statusEl = document.getElementById(`status-${id}`);
+    const fragEl   = document.getElementById(`frag-${id}`);
+    const valEl    = document.getElementById(`frag-val-${id}`);
+    const modEl    = document.getElementById(`mod-${id}`);
+    const statusEl = document.getElementById(`status-${id}`);
 
-      if (collected) {
-        fragEl.classList.add('collected');
-        valEl.textContent = FRAGMENTS[id];
-        modEl.classList.add('complete');
-        statusEl.textContent = '✓ RESTORED';
-      }
-    });
+    if (collected) {
+      fragEl.classList.add('collected');
+      valEl.textContent = FRAGMENTS[id];
+      modEl.classList.add('complete');
+      statusEl.textContent = '✓ RESTORED';
+    }
+  });
 
-    document.getElementById('pod-progress').textContent = `${count} / 4 FRAGMENTS`;
+  document.getElementById('pod-progress').textContent = `${count} / 4 FRAGMENTS`;
 
-    const btn = document.getElementById('launch-btn');
-    if (count === 4) btn.classList.add('ready');
-  }
+  const btn = document.getElementById('launch-btn');
+  if (count === 4) btn.classList.add('ready');
 
+  // journal
+  syncJournalFromGame();
+  renderJournal('journal-entries');
+  document.getElementById('journal-count').textContent = `${getDiscovered().length} / 4`;
+}
   function checkLaunch(e) {
     const state = getState();
     const count = ['A','B','C','D'].filter(id => !!state[id]).length;
