@@ -7,569 +7,264 @@
   <link rel="stylesheet" href="../styles.css">
   <style>
 
-    /* ── ROOM ATMOSPHERE ── */
     .room-bg {
-      position: fixed;
-      inset: 0;
+      position: fixed; inset: 0;
       background:
         radial-gradient(ellipse 40% 60% at 20% 50%, rgba(0,150,220,0.05) 0%, transparent 70%),
         radial-gradient(ellipse 30% 40% at 80% 30%, rgba(0,80,180,0.04) 0%, transparent 60%);
-      pointer-events: none;
-      z-index: 1;
+      pointer-events: none; z-index: 1;
     }
 
-    /* ── TOPBAR EXTRAS ── */
     .topbar { gap: 0; justify-content: space-between; }
     .topbar-left { display: flex; align-items: center; gap: 16px; }
     .breadcrumb {
-      font-family: var(--font-mono);
-      font-size: 10px;
-      color: var(--muted);
-      letter-spacing: 0.1em;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      font-family: var(--font-mono); font-size: 10px; color: var(--muted);
+      letter-spacing: 0.1em; display: flex; align-items: center; gap: 8px;
     }
-    .breadcrumb a {
-      color: var(--muted);
-      text-decoration: none;
-      transition: color 0.2s;
-    }
+    .breadcrumb a { color: var(--muted); text-decoration: none; transition: color 0.2s; }
     .breadcrumb a:hover { color: var(--accent); }
     .breadcrumb .sep { color: var(--dim); }
     .breadcrumb .current { color: var(--accent); }
-
     .timer-wrap { display: flex; align-items: center; gap: 10px; }
     .timer-label { font-family: var(--font-mono); font-size: 10px; color: var(--muted); letter-spacing: 0.1em; }
 
-    /* ── SHELL ── */
     .room-shell {
-      max-width: 860px;
-      margin: 0 auto;
-      padding: 32px 28px 100px;
-      position: relative;
-      z-index: 10;
+      max-width: 860px; margin: 0 auto;
+      padding: 32px 28px 100px; position: relative; z-index: 10;
     }
 
-    /* ── ROOM HEADER ── */
     .room-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 28px;
-      opacity: 0;
-      animation: fadeIn 0.6s ease 0.1s forwards;
+      display: flex; justify-content: space-between; align-items: flex-start;
+      margin-bottom: 28px; opacity: 0; animation: fadeIn 0.6s ease 0.1s forwards;
     }
     .room-tag {
-      font-family: var(--font-mono);
-      font-size: 10px;
-      letter-spacing: 0.2em;
-      color: var(--accent);
-      margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.2em;
+      color: var(--accent); margin-bottom: 8px; display: flex; align-items: center; gap: 8px;
     }
     .room-tag::before {
-      content: '';
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: var(--accent);
-      animation: pulse 2s infinite;
+      content: ''; width: 6px; height: 6px; border-radius: 50%;
+      background: var(--accent); animation: pulse 2s infinite;
     }
     .room-title {
-      font-family: var(--font-hud);
-      font-size: 26px;
-      font-weight: 900;
-      color: #e8f4f8;
-      letter-spacing: 0.08em;
+      font-family: var(--font-hud); font-size: 26px; font-weight: 900;
+      color: #e8f4f8; letter-spacing: 0.08em;
     }
-    .room-status-wrap { text-align: right; }
-    .hint-counter {
-      font-family: var(--font-mono);
-      font-size: 10px;
-      color: var(--muted);
-      letter-spacing: 0.1em;
-      margin-bottom: 8px;
-    }
-    .hint-counter span { color: var(--warn); }
 
-    /* ── TWO-COL LAYOUT ── */
     .room-body {
-      display: grid;
-      grid-template-columns: 1fr 300px;
-      gap: 20px;
-      align-items: start;
+      display: grid; grid-template-columns: 1fr 300px;
+      gap: 20px; align-items: start;
     }
-    @media (max-width: 680px) {
-      .room-body { grid-template-columns: 1fr; }
-    }
+    @media (max-width: 680px) { .room-body { grid-template-columns: 1fr; } }
 
-    /* ── LORE LOG ── */
     .lore-log {
-      border: 1px solid var(--border);
-      background: var(--panel);
-      padding: 20px 22px;
-      margin-bottom: 20px;
-      position: relative;
-      opacity: 0;
-      animation: fadeIn 0.6s ease 0.2s forwards;
+      border: 1px solid var(--border); background: var(--panel);
+      padding: 20px 22px; margin-bottom: 20px; position: relative;
+      opacity: 0; animation: fadeIn 0.6s ease 0.2s forwards;
     }
     .lore-log::after {
-      content: '';
-      position: absolute;
-      top: 0; left: 0;
-      width: 3px; height: 100%;
-      background: var(--danger);
+      content: ''; position: absolute; top: 0; left: 0;
+      width: 3px; height: 100%; background: var(--danger);
     }
     .log-entry {
-      font-family: var(--font-mono);
-      font-size: 12px;
-      line-height: 1.9;
-      color: var(--text);
+      font-family: var(--font-mono); font-size: 12px; line-height: 1.9; color: var(--text);
     }
-    .log-entry .ts { color: var(--muted); }
-    .log-entry .hi { color: var(--accent); }
+    .log-entry .ts    { color: var(--muted); }
+    .log-entry .hi    { color: var(--accent); }
     .log-entry .alert { color: var(--danger); }
 
-    /* ── VALVE PANEL ── */
     .valve-panel {
-      border: 1px solid var(--border);
-      background: var(--panel);
-      padding: 28px;
-      position: relative;
-      opacity: 0;
-      animation: fadeIn 0.6s ease 0.3s forwards;
+      border: 1px solid var(--border); background: var(--panel);
+      padding: 28px; position: relative;
+      opacity: 0; animation: fadeIn 0.6s ease 0.3s forwards;
     }
     .valve-panel-label {
-      position: absolute;
-      top: -9px; left: 20px;
-      font-family: var(--font-mono);
-      font-size: 10px;
-      color: var(--muted);
-      background: var(--panel);
-      padding: 0 8px;
-      letter-spacing: 0.1em;
+      position: absolute; top: -9px; left: 20px;
+      font-family: var(--font-mono); font-size: 10px; color: var(--muted);
+      background: var(--panel); padding: 0 8px; letter-spacing: 0.1em;
     }
 
     .valve-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 16px;
-      margin: 8px 0 24px;
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 14px; margin: 8px 0 24px;
     }
 
     .valve {
-      border: 1px solid var(--border);
-      background: var(--panel-2);
-      padding: 18px 12px 14px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 12px;
-      cursor: pointer;
+      border: 1px solid var(--border); background: var(--panel-2);
+      padding: 16px 10px 12px; display: flex; flex-direction: column;
+      align-items: center; gap: 10px; cursor: pointer;
       transition: border-color 0.2s, background 0.2s;
-      position: relative;
-      user-select: none;
+      position: relative; user-select: none;
     }
     .valve:hover:not(.locked-out) { border-color: var(--border-hi); }
-    .valve.open {
-      border-color: var(--accent);
-      background: rgba(0, 212, 255, 0.04);
-    }
-    .valve.open .valve-body { background: var(--accent); }
-    .valve.open .valve-stem { background: var(--accent); }
-    .valve.open .valve-label { color: var(--accent); }
+    .valve.open { border-color: var(--accent); background: rgba(0,212,255,0.04); }
 
-    /* Valve SVG illustration */
-    .valve-visual {
-      width: 52px;
-      height: 52px;
-      position: relative;
-    }
+    .valve-visual { width: 48px; height: 48px; position: relative; }
     .valve-pipe-h {
-      position: absolute;
-      top: 50%; left: 0; right: 0;
-      height: 8px;
-      margin-top: -4px;
-      background: var(--dim);
-      border-radius: 2px;
-      transition: background 0.3s;
+      position: absolute; top: 50%; left: 0; right: 0;
+      height: 8px; margin-top: -4px;
+      background: var(--dim); border-radius: 2px; transition: background 0.3s;
     }
     .valve.open .valve-pipe-h { background: rgba(0,212,255,0.3); }
     .valve-body {
-      position: absolute;
-      top: 50%; left: 50%;
-      width: 20px; height: 20px;
-      margin: -10px 0 0 -10px;
-      background: var(--border);
-      border-radius: 50%;
-      border: 2px solid var(--dim);
-      transition: background 0.3s, border-color 0.3s;
-      z-index: 2;
+      position: absolute; top: 50%; left: 50%;
+      width: 18px; height: 18px; margin: -9px 0 0 -9px;
+      background: var(--border); border-radius: 50%;
+      border: 2px solid var(--dim); transition: background 0.3s, border-color 0.3s; z-index: 2;
     }
     .valve.open .valve-body { border-color: var(--accent); }
     .valve-stem {
-      position: absolute;
-      top: 0; left: 50%;
-      width: 4px; height: 14px;
-      margin-left: -2px;
-      background: var(--dim);
-      border-radius: 2px;
-      transition: background 0.3s;
-      z-index: 1;
+      position: absolute; top: 0; left: 50%;
+      width: 4px; height: 12px; margin-left: -2px;
+      background: var(--dim); border-radius: 2px; transition: background 0.3s; z-index: 1;
     }
     .valve-handle {
-      position: absolute;
-      top: 0; left: 50%;
-      width: 18px; height: 6px;
-      margin-left: -9px;
-      background: var(--dim);
-      border-radius: 2px;
-      transition: transform 0.3s, background 0.3s;
-      z-index: 3;
+      position: absolute; top: 0; left: 50%;
+      width: 16px; height: 5px; margin-left: -8px;
+      background: var(--dim); border-radius: 2px;
+      transition: transform 0.3s, background 0.3s; z-index: 3;
     }
-    .valve.open .valve-handle {
-      transform: rotate(90deg);
-      background: var(--accent);
-    }
+    .valve.open .valve-handle { transform: rotate(90deg); background: var(--accent); }
 
     .valve-id {
-      font-family: var(--font-hud);
-      font-size: 16px;
-      font-weight: 900;
-      color: var(--muted);
-      transition: color 0.3s;
+      font-family: var(--font-hud); font-size: 15px; font-weight: 900;
+      color: var(--muted); transition: color 0.3s;
     }
     .valve.open .valve-id { color: var(--accent); }
-
     .valve-label {
-      font-family: var(--font-mono);
-      font-size: 9px;
-      letter-spacing: 0.12em;
-      color: var(--muted);
-      text-align: center;
-      transition: color 0.3s;
+      font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.1em;
+      color: var(--muted); text-align: center; transition: color 0.3s;
     }
-
     .valve-state {
-      font-family: var(--font-mono);
-      font-size: 9px;
-      letter-spacing: 0.1em;
-      color: var(--muted);
+      font-family: var(--font-mono); font-size: 9px; color: var(--muted);
     }
     .valve.open .valve-state { color: var(--green); }
 
-    /* pressure indicator */
     .pressure-row {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      margin-bottom: 20px;
+      display: flex; gap: 10px; align-items: center; margin-bottom: 20px;
     }
-    .pressure-label {
-      font-family: var(--font-mono);
-      font-size: 10px;
-      color: var(--muted);
-      letter-spacing: 0.08em;
-      white-space: nowrap;
-    }
-    .pressure-track {
-      flex: 1;
-      height: 4px;
-      background: var(--border);
-      position: relative;
-    }
+    .pressure-label { font-family: var(--font-mono); font-size: 10px; color: var(--muted); letter-spacing: 0.08em; white-space: nowrap; }
+    .pressure-track { flex: 1; height: 4px; background: var(--border); position: relative; }
     .pressure-fill {
-      position: absolute;
-      top: 0; left: 0; height: 100%;
-      background: var(--accent);
-      transition: width 0.4s ease;
-      width: 0%;
+      position: absolute; top: 0; left: 0; height: 100%;
+      background: var(--accent); transition: width 0.4s ease;
     }
-    .pressure-val {
-      font-family: var(--font-mono);
-      font-size: 10px;
-      color: var(--text);
-      letter-spacing: 0.05em;
-      min-width: 36px;
-      text-align: right;
-    }
+    .pressure-val { font-family: var(--font-mono); font-size: 10px; color: var(--text); min-width: 48px; text-align: right; }
 
-    /* submit row */
-    .submit-row {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-    }
+    .submit-row { display: flex; gap: 12px; align-items: center; }
     .submit-btn {
-      font-family: var(--font-hud);
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.2em;
-      padding: 12px 24px;
-      border: 1px solid var(--accent);
-      color: var(--accent);
-      background: transparent;
-      cursor: pointer;
-      transition: all 0.2s;
+      font-family: var(--font-hud); font-size: 11px; font-weight: 700;
+      letter-spacing: 0.2em; padding: 12px 24px;
+      border: 1px solid var(--accent); color: var(--accent);
+      background: transparent; cursor: pointer; transition: all 0.2s;
     }
     .submit-btn:hover:not(:disabled) { background: rgba(0,212,255,0.08); }
-    .submit-btn:disabled {
-      border-color: var(--muted);
-      color: var(--muted);
-      cursor: not-allowed;
-    }
+    .submit-btn:disabled { border-color: var(--muted); color: var(--muted); cursor: not-allowed; }
     .reset-btn {
-      font-family: var(--font-mono);
-      font-size: 10px;
-      letter-spacing: 0.15em;
-      padding: 12px 16px;
-      border: 1px solid var(--border);
-      color: var(--muted);
-      background: transparent;
-      cursor: pointer;
-      transition: all 0.2s;
+      font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.15em;
+      padding: 12px 16px; border: 1px solid var(--border); color: var(--muted);
+      background: transparent; cursor: pointer; transition: all 0.2s;
     }
     .reset-btn:hover { border-color: var(--muted); color: var(--text); }
-
-    .feedback {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      letter-spacing: 0.08em;
-      flex: 1;
-      transition: color 0.3s;
-    }
-    .feedback.ok     { color: var(--green); }
-    .feedback.fail   { color: var(--danger); }
+    .feedback { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; flex: 1; }
+    .feedback.ok   { color: var(--green); }
+    .feedback.fail { color: var(--danger); }
     .feedback.locked { color: var(--warn); }
 
-    /* lockout overlay */
     .lockout-bar {
-      position: absolute;
-      bottom: 0; left: 0;
-      height: 2px;
-      background: var(--danger);
-      width: 100%;
-      transform: scaleX(0);
-      transform-origin: left;
-      transition: none;
+      position: absolute; bottom: 0; left: 0; height: 2px;
+      background: var(--danger); width: 100%;
+      transform: scaleX(0); transform-origin: left; transition: none;
     }
-    .lockout-bar.animating {
-      transform: scaleX(1);
-      transition: transform 15s linear;
-    }
+    .lockout-bar.animating { transform: scaleX(1); transition: transform 15s linear; }
 
-    /* ── SIDE PANEL ── */
     .side-panels { display: flex; flex-direction: column; gap: 16px; }
 
-    /* clue panel */
     .clue-panel {
-      border: 1px solid var(--border);
-      background: var(--panel);
-      padding: 20px 22px;
-      position: relative;
-      opacity: 0;
-      animation: fadeIn 0.6s ease 0.4s forwards;
+      border: 1px solid var(--border); background: var(--panel); padding: 20px 22px;
+      position: relative; opacity: 0; animation: fadeIn 0.6s ease 0.4s forwards;
     }
     .clue-title {
-      font-family: var(--font-hud);
-      font-size: 9px;
-      letter-spacing: 0.25em;
-      color: var(--muted);
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 10px;
-      margin-bottom: 14px;
+      font-family: var(--font-hud); font-size: 9px; letter-spacing: 0.25em; color: var(--muted);
+      border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 14px;
     }
     .clue-text {
-      font-family: var(--font-mono);
-      font-size: 12px;
-      line-height: 1.8;
-      color: var(--text);
+      font-family: var(--font-mono); font-size: 12px; line-height: 1.8; color: var(--text);
     }
     .clue-text strong { color: var(--warn); font-weight: normal; }
-    .clue-scratch {
-      margin-top: 12px;
-      padding-top: 12px;
-      border-top: 1px solid var(--border);
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: var(--muted);
-      line-height: 1.7;
-    }
 
-    /* attempt history */
     .history-panel {
-      border: 1px solid var(--border);
-      background: var(--panel);
-      padding: 20px 22px;
-      opacity: 0;
-      animation: fadeIn 0.6s ease 0.5s forwards;
+      border: 1px solid var(--border); background: var(--panel); padding: 20px 22px;
+      opacity: 0; animation: fadeIn 0.6s ease 0.5s forwards;
     }
     .history-title {
-      font-family: var(--font-hud);
-      font-size: 9px;
-      letter-spacing: 0.25em;
-      color: var(--muted);
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 10px;
-      margin-bottom: 12px;
+      font-family: var(--font-hud); font-size: 9px; letter-spacing: 0.25em; color: var(--muted);
+      border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 12px;
     }
     .attempt-list { list-style: none; }
     .attempt-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 6px 0;
-      border-bottom: 1px solid rgba(26,46,61,0.4);
-      font-family: var(--font-mono);
-      font-size: 10px;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 6px 0; border-bottom: 1px solid rgba(26,46,61,0.4);
+      font-family: var(--font-mono); font-size: 10px;
     }
     .attempt-item:last-child { border-bottom: none; }
     .attempt-valves { color: var(--text); letter-spacing: 0.05em; }
-    .attempt-result { }
     .attempt-result.fail { color: var(--danger); }
     .attempt-result.ok   { color: var(--green); }
     .no-attempts { font-family: var(--font-mono); font-size: 11px; color: var(--dim); }
 
-    /* hint panel */
     .hint-panel {
-      border: 1px solid var(--border);
-      background: var(--panel);
-      padding: 20px 22px;
-      opacity: 0;
-      animation: fadeIn 0.6s ease 0.6s forwards;
+      border: 1px solid var(--border); background: var(--panel); padding: 20px 22px;
+      opacity: 0; animation: fadeIn 0.6s ease 0.6s forwards;
     }
     .hint-title {
-      font-family: var(--font-hud);
-      font-size: 9px;
-      letter-spacing: 0.25em;
-      color: var(--muted);
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 10px;
-      margin-bottom: 14px;
+      font-family: var(--font-hud); font-size: 9px; letter-spacing: 0.25em; color: var(--muted);
+      border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 14px;
     }
     .hint-btn {
-      width: 100%;
-      font-family: var(--font-hud);
-      font-size: 10px;
-      letter-spacing: 0.18em;
-      padding: 10px;
-      border: 1px solid var(--warn);
-      color: var(--warn);
-      background: transparent;
-      cursor: pointer;
-      transition: all 0.2s;
+      width: 100%; font-family: var(--font-hud); font-size: 10px; letter-spacing: 0.18em;
+      padding: 10px; border: 1px solid var(--warn); color: var(--warn);
+      background: transparent; cursor: pointer; transition: all 0.2s;
     }
     .hint-btn:hover:not(:disabled) { background: rgba(255,170,0,0.06); }
     .hint-btn:disabled { border-color: var(--dim); color: var(--dim); cursor: not-allowed; }
-    .hint-text {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      line-height: 1.8;
-      color: var(--warn);
-      margin-top: 12px;
-      display: none;
-    }
+    .hint-text { font-family: var(--font-mono); font-size: 11px; line-height: 1.8; color: var(--warn); margin-top: 12px; display: none; }
     .hint-text.visible { display: block; }
 
-    /* ── SUCCESS OVERLAY ── */
     .success-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(6,10,15,0.92);
-      z-index: 300;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.5s;
+      position: fixed; inset: 0; background: rgba(6,10,15,0.92); z-index: 300;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity 0.5s;
     }
     .success-overlay.show { opacity: 1; pointer-events: all; }
     .success-card {
-      border: 1px solid var(--green);
-      background: var(--panel);
-      padding: 48px 52px;
-      text-align: center;
-      max-width: 460px;
-      width: 90%;
-      position: relative;
+      border: 1px solid var(--green); background: var(--panel);
+      padding: 48px 52px; text-align: center; max-width: 460px; width: 90%; position: relative;
     }
     .success-card::before, .success-card::after {
-      content: '';
-      position: absolute;
-      height: 2px;
-      left: 0; right: 0;
+      content: ''; position: absolute; height: 2px; left: 0; right: 0;
       background: linear-gradient(90deg, transparent, var(--green), transparent);
     }
-    .success-card::before { top: 0; }
-    .success-card::after  { bottom: 0; }
-    .success-icon {
-      font-family: var(--font-hud);
-      font-size: 48px;
-      color: var(--green);
-      margin-bottom: 20px;
-      display: block;
-    }
-    .success-title {
-      font-family: var(--font-hud);
-      font-size: 18px;
-      font-weight: 700;
-      color: #e8f4f8;
-      letter-spacing: 0.1em;
-      margin-bottom: 10px;
-    }
-    .success-sub {
-      font-family: var(--font-mono);
-      font-size: 12px;
-      color: var(--muted);
-      letter-spacing: 0.05em;
-      line-height: 1.8;
-      margin-bottom: 8px;
-    }
+    .success-card::before { top: 0; } .success-card::after { bottom: 0; }
+    .success-icon { font-size: 48px; color: var(--green); margin-bottom: 20px; display: block; }
+    .success-title { font-family: var(--font-hud); font-size: 18px; font-weight: 700; color: #e8f4f8; letter-spacing: 0.1em; margin-bottom: 10px; }
+    .success-sub { font-family: var(--font-mono); font-size: 12px; color: var(--muted); letter-spacing: 0.05em; line-height: 1.8; margin-bottom: 8px; }
     .fragment-reveal {
-      font-family: var(--font-hud);
-      font-size: 28px;
-      font-weight: 900;
-      color: var(--green);
-      letter-spacing: 0.3em;
-      margin: 20px 0 28px;
-      border: 1px solid rgba(0,255,136,0.3);
-      padding: 14px 24px;
-      display: inline-block;
+      font-family: var(--font-hud); font-size: 28px; font-weight: 900; color: var(--green);
+      letter-spacing: 0.3em; margin: 20px 0 28px;
+      border: 1px solid rgba(0,255,136,0.3); padding: 14px 24px; display: inline-block;
     }
     .success-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
     .success-btn {
-      font-family: var(--font-hud);
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.2em;
-      padding: 12px 22px;
-      border: 1px solid var(--accent);
-      color: var(--accent);
-      background: transparent;
-      cursor: pointer;
-      text-decoration: none;
-      transition: all 0.2s;
+      font-family: var(--font-hud); font-size: 10px; font-weight: 700; letter-spacing: 0.2em;
+      padding: 12px 22px; border: 1px solid var(--accent); color: var(--accent);
+      background: transparent; cursor: pointer; text-decoration: none; transition: all 0.2s;
     }
     .success-btn:hover { background: rgba(0,212,255,0.08); }
-    .success-btn.secondary {
-      border-color: var(--border);
-      color: var(--muted);
-    }
+    .success-btn.secondary { border-color: var(--border); color: var(--muted); }
     .success-btn.secondary:hover { border-color: var(--muted); color: var(--text); }
-
-    /* lore easter egg on success */
     .lore-reveal {
-      margin-top: 20px;
-      padding-top: 18px;
-      border-top: 1px solid var(--border);
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: var(--muted);
-      line-height: 1.8;
-      text-align: left;
+      margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--border);
+      font-family: var(--font-mono); font-size: 11px; color: var(--muted); line-height: 1.8; text-align: left;
     }
     .lore-reveal strong { color: var(--warn); font-weight: normal; }
 
@@ -581,13 +276,12 @@
 <div class="vignette"></div>
 <div class="room-bg"></div>
 
-<!-- SUCCESS OVERLAY -->
 <div class="success-overlay" id="success-overlay">
   <div class="success-card">
     <span class="success-icon">✓</span>
     <div class="success-title">O2 SYSTEMS RESTORED</div>
     <div class="success-sub">Atmospheric pressure nominal.<br>Fragment A recovered from override console.</div>
-    <div class="fragment-reveal" id="fragment-display">4471</div>
+    <div class="fragment-reveal">4471</div>
     <div class="success-sub" style="font-size:10px">Fragment saved automatically.</div>
     <div class="success-actions">
       <a href="../hub.html" class="success-btn">‹ RETURN TO HUB</a>
@@ -600,7 +294,6 @@
   </div>
 </div>
 
-<!-- TOP BAR -->
 <header class="topbar">
   <div class="topbar-left">
     <div class="breadcrumb">
@@ -618,85 +311,70 @@
 
 <main class="room-shell">
 
-  <!-- ROOM HEADER -->
   <div class="room-header">
     <div>
       <div class="room-tag">MODULE A // SECTOR 4 // ATMOSPHERIC CONTROL</div>
       <div class="room-title">O2 Control Room</div>
     </div>
-    <div class="room-status-wrap">
-      <div class="hint-counter">HINTS REMAINING: <span id="hint-count">3</span></div>
+    <div style="text-align:right">
+      <div style="font-family:var(--font-mono);font-size:10px;color:var(--muted);letter-spacing:0.1em;margin-bottom:8px">
+        HINTS REMAINING: <span id="hint-count" style="color:var(--warn)">3</span>
+      </div>
       <div class="badge badge--danger">LIFE SUPPORT FAILING</div>
     </div>
   </div>
 
   <div class="room-body">
-    <!-- LEFT COLUMN -->
     <div>
 
-      <!-- LORE LOG -->
       <div class="lore-log">
         <div class="panel-label">WALL-MOUNTED NOTICE — HANDWRITTEN</div>
         <div class="log-entry">
-          <span class="ts">// ATMOSPHERIC OVERRIDE PANEL //</span><br>
-          Six manual pressure valves control O2 flow to the station.<br>
-          <span class="alert">WARNING:</span> Do not open all valves simultaneously —<br>
-          pressure cascade will rupture the main recycler.<br><br>
-          <span class="hi">Maintenance note:</span> "Only the prime positions flow."<br>
-          <span class="ts">— Chief Engineer Vasquez, Stardate 2347.031</span>
+          <span class="ts">// ATMOSPHERIC OVERRIDE PANEL — 8-VALVE ARRAY //</span><br>
+          Eight manual pressure valves control O2 flow.<br>
+          <span class="alert">WARNING:</span> Opening incorrect valves risks<br>
+          catastrophic pressure cascade in the main recycler.<br><br>
+          <span class="hi">Maintenance note (Vasquez):</span><br>
+          <em>"Only the prime positions flow."</em><br><br>
+          <span class="ts">— Last calibrated: Stardate 2347.031</span>
         </div>
       </div>
 
-      <!-- VALVE PANEL -->
       <div class="valve-panel" id="valve-panel">
-        <div class="valve-panel-label">ATMOSPHERIC PRESSURE CONTROL — 6-VALVE ARRAY</div>
+        <div class="valve-panel-label">ATMOSPHERIC PRESSURE CONTROL — 8-VALVE ARRAY</div>
 
-        <!-- pressure meter -->
         <div class="pressure-row" style="margin-top:8px">
           <div class="pressure-label">SYSTEM PRESSURE</div>
-          <div class="pressure-track">
-            <div class="pressure-fill" id="pressure-fill"></div>
-          </div>
+          <div class="pressure-track"><div class="pressure-fill" id="pressure-fill"></div></div>
           <div class="pressure-val" id="pressure-val">0 kPa</div>
         </div>
 
-        <!-- valves -->
-        <div class="valve-grid" id="valve-grid">
-          <!-- generated by JS -->
-        </div>
+        <div class="valve-grid" id="valve-grid"></div>
 
         <div class="submit-row">
           <button class="submit-btn" id="submit-btn" onclick="checkSolution()">PRESSURIZE</button>
           <button class="reset-btn" onclick="resetValves()">RESET</button>
           <div class="feedback" id="feedback"></div>
         </div>
-
-        <!-- lockout progress bar -->
         <div class="lockout-bar" id="lockout-bar"></div>
       </div>
 
     </div>
 
-    <!-- RIGHT COLUMN -->
     <div class="side-panels">
 
-      <!-- CLUE PANEL -->
       <div class="clue-panel">
         <div class="clue-title">ENGINEER'S REFERENCE</div>
         <div class="clue-text">
-          Valves are numbered <strong>1 through 6</strong>.<br>
-          Each valve is either <strong>OPEN</strong> or <strong>CLOSED</strong>.<br><br>
+          Valves are numbered <strong>1 through 8</strong>.<br>
+          Each is either OPEN or CLOSED.<br><br>
           The maintenance note reads:<br>
-          <strong>"Only the prime positions flow."</strong>
-        </div>
-        <div class="clue-scratch">
-          Primes ≤ 6:<br>
-          2 &nbsp;✓ &nbsp;3 &nbsp;✓ &nbsp;5 &nbsp;✓<br>
-          1 &nbsp;✗ &nbsp;4 &nbsp;✗ &nbsp;6 &nbsp;✗
+          <strong>"Only the prime positions flow."</strong><br><br>
+          Determine which valve numbers<br>
+          are prime. Open those. Close the rest.
         </div>
       </div>
 
-      <!-- ATTEMPT HISTORY -->
       <div class="history-panel">
         <div class="history-title">ATTEMPT HISTORY</div>
         <ul class="attempt-list" id="attempt-list">
@@ -704,7 +382,6 @@
         </ul>
       </div>
 
-      <!-- HINT -->
       <div class="hint-panel">
         <div class="hint-title">REQUEST HINT</div>
         <button class="hint-btn" id="hint-btn" onclick="useHint()">USE HINT (3 remaining)</button>
@@ -715,7 +392,6 @@
   </div>
 </main>
 
-<!-- BOTTOM HUD -->
 <div class="hud-bar">
   <div class="hud-item"><div class="hud-dot"></div>O2 PRESSURE: <span id="hud-pressure">CRITICAL</span></div>
   <div class="hud-item">ATTEMPTS: <span id="hud-attempts">0</span></div>
@@ -723,66 +399,46 @@
 </div>
 
 <script>
-  /* ══════════════════════
-     STATE
-  ══════════════════════ */
-  const SOLUTION   = [false, true, true, false, true, false]; // valves 1-6; open = true; primes: 2,3,5
-  const FRAGMENT   = '4471';
-  const LOCKOUT_S  = 15;
+  // Valves 1-8; primes are 2,3,5,7
+  const SOLUTION  = [false,true,true,false,true,false,true,false];
+  const FRAGMENT  = '4471';
+  const LOCKOUT_S = 15;
 
   const hints = [
-    "The note says \"prime positions.\" In mathematics, a prime number is only divisible by 1 and itself.",
-    "The primes between 1 and 6 are: 2, 3, and 5. Open exactly those three valves.",
-    "Open valves 2, 3, and 5. Leave valves 1, 4, and 6 closed."
+    "A prime number is only divisible by 1 and itself. Which numbers between 1 and 8 qualify? Start by eliminating the obvious ones: 1 is not prime. 4, 6, and 8 are even and greater than 2, so they're not prime either.",
+    "The primes between 1 and 8 are 2, 3, 5, and 7. That's four valves to open.",
+    "Open valves 2, 3, 5, and 7. Leave valves 1, 4, 6, and 8 closed."
   ];
 
-  let valveState   = [false, false, false, false, false, false];
-  let attempts     = [];
-  let hintsLeft    = 3;
-  let lockedOut    = false;
-  let solved       = false;
+  let valveState = new Array(8).fill(false);
+  let attempts   = [];
+  let hintsLeft  = 3;
+  let lockedOut  = false;
+  let solved     = false;
 
-  /* ══════════════════════
-     TIMER
-  ══════════════════════ */
   let totalSeconds = 20 * 60;
   const savedTime  = localStorage.getItem('erebus-time');
   if (savedTime) totalSeconds = parseInt(savedTime, 10);
-
   const timerEl = document.getElementById('timer');
-  function formatTime(s) {
-    return `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`;
-  }
-  timerEl.textContent = formatTime(totalSeconds);
-
+  function fmt(s){ return `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`; }
+  timerEl.textContent = fmt(totalSeconds);
   const timerInterval = setInterval(() => {
     totalSeconds--;
     localStorage.setItem('erebus-time', totalSeconds);
-    timerEl.textContent = formatTime(totalSeconds);
+    timerEl.textContent = fmt(totalSeconds);
     if (totalSeconds <= 60) timerEl.classList.add('critical');
     if (totalSeconds <= 0) {
       clearInterval(timerInterval);
-      document.body.innerHTML = `
-        <div style="display:flex;align-items:center;justify-content:center;height:100vh;
-             font-family:'Orbitron',sans-serif;font-size:28px;color:#ff3b3b;letter-spacing:0.15em;
-             text-align:center;flex-direction:column;gap:16px;background:#060a0f;">
-          <div>LIFE SUPPORT FAILURE</div>
-          <div style="font-size:12px;color:#4a6a7a;font-family:'Share Tech Mono',monospace;letter-spacing:0.2em">
-            MISSION FAILED — <a href="../hub.html" style="color:#00d4ff">RETURN TO HUB</a>
-          </div>
-        </div>`;
+      document.body.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:'Orbitron',sans-serif;font-size:28px;color:#ff3b3b;letter-spacing:0.15em;text-align:center;flex-direction:column;gap:16px;background:#060a0f;"><div>LIFE SUPPORT FAILURE</div><div style="font-size:12px;color:#4a6a7a;font-family:'Share Tech Mono',monospace;letter-spacing:0.2em">MISSION FAILED — <a href="../hub.html" style="color:#00d4ff">RETURN TO HUB</a></div></div>`;
     }
   }, 1000);
 
-  /* ══════════════════════
-     BUILD VALVES
-  ══════════════════════ */
   function buildGrid() {
     const grid = document.getElementById('valve-grid');
     grid.innerHTML = '';
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 8; i++) {
       const open = valveState[i];
-      const div = document.createElement('div');
+      const div  = document.createElement('div');
       div.className = `valve${open ? ' open' : ''}`;
       div.id = `valve-${i}`;
       div.onclick = () => toggleValve(i);
@@ -809,50 +465,40 @@
     el.classList.toggle('open', valveState[i]);
     el.querySelector('.valve-state').textContent = valveState[i] ? 'OPEN' : 'CLOSED';
     updatePressure();
-    document.getElementById('feedback').textContent = '';
-    document.getElementById('feedback').className = 'feedback';
+    setFeedback('', '');
   }
 
   function resetValves() {
     if (lockedOut || solved) return;
-    valveState = [false, false, false, false, false, false];
+    valveState = new Array(8).fill(false);
     buildGrid();
     setFeedback('', '');
   }
 
-  /* ══════════════════════
-     PRESSURE METER
-  ══════════════════════ */
   function updatePressure() {
     const openCount = valveState.filter(Boolean).length;
-    const pct       = Math.round((openCount / 3) * 100);
-    const kpa       = Math.round(openCount * 26.7);
+    const target    = 4; // four primes
+    const pct       = Math.round((openCount / target) * 100);
+    const kpa       = Math.round(openCount * 20);
     const fill      = document.getElementById('pressure-fill');
     const val       = document.getElementById('pressure-val');
     const hud       = document.getElementById('hud-pressure');
-
-    fill.style.width = Math.min(pct, 100) + '%';
-    fill.style.background = openCount > 3 ? 'var(--danger)' : openCount === 3 ? 'var(--green)' : 'var(--accent)';
-    val.textContent  = `${kpa} kPa`;
-    val.style.color  = openCount > 3 ? 'var(--danger)' : openCount === 3 ? 'var(--green)' : 'var(--text)';
-    hud.textContent  = openCount === 0 ? 'CRITICAL' : openCount <= 2 ? 'LOW' : openCount === 3 ? 'NOMINAL' : 'OVERPRESSURE';
-    hud.style.color  = openCount > 3 ? 'var(--danger)' : openCount === 3 ? 'var(--green)' : 'var(--warn)';
+    fill.style.width      = Math.min(pct, 100) + '%';
+    fill.style.background = openCount > target ? 'var(--danger)' : openCount === target ? 'var(--green)' : 'var(--accent)';
+    val.textContent       = `${kpa} kPa`;
+    val.style.color       = openCount > target ? 'var(--danger)' : openCount === target ? 'var(--green)' : 'var(--text)';
+    hud.textContent       = openCount === 0 ? 'CRITICAL' : openCount < target ? 'LOW' : openCount === target ? 'NOMINAL' : 'OVERPRESSURE';
+    hud.style.color       = openCount > target ? 'var(--danger)' : openCount === target ? 'var(--green)' : 'var(--warn)';
   }
 
-  /* ══════════════════════
-     CHECK SOLUTION
-  ══════════════════════ */
   function checkSolution() {
     if (lockedOut || solved) return;
-
-    const correct = SOLUTION.every((s, i) => s === valveState[i]);
+    const correct  = SOLUTION.every((s, i) => s === valveState[i]);
     const openNums = valveState.map((v,i) => v ? i+1 : null).filter(Boolean);
     const label    = openNums.length ? openNums.join(', ') : 'none';
-
     attempts.push({ valves: label, correct });
     updateHistory();
     document.getElementById('hud-attempts').textContent = attempts.length;
-
     if (correct) {
       handleSolve();
     } else {
@@ -864,33 +510,21 @@
   function handleSolve() {
     solved = true;
     clearInterval(timerInterval);
-
-    // save fragment
     const state = JSON.parse(localStorage.getItem('erebus') || '{}');
     state.A = FRAGMENT;
     localStorage.setItem('erebus', JSON.stringify(state));
-
     setFeedback('CORRECT — O2 systems nominal. Fragment A recovered.', 'ok');
     document.getElementById('hud-status').textContent = 'SOLVED';
     document.getElementById('hud-status').style.color = 'var(--green)';
-
-    setTimeout(() => {
-      document.getElementById('success-overlay').classList.add('show');
-    }, 800);
+    setTimeout(() => document.getElementById('success-overlay').classList.add('show'), 800);
   }
 
-  /* ══════════════════════
-     LOCKOUT
-  ══════════════════════ */
   function triggerLockout() {
     lockedOut = true;
     document.getElementById('submit-btn').disabled = true;
-
     const bar = document.getElementById('lockout-bar');
-    bar.classList.remove('animating');
-    void bar.offsetWidth; // reflow
+    bar.classList.remove('animating'); void bar.offsetWidth;
     bar.classList.add('animating');
-
     setTimeout(() => {
       lockedOut = false;
       document.getElementById('submit-btn').disabled = false;
@@ -899,66 +533,42 @@
     }, LOCKOUT_S * 1000);
   }
 
-  /* ══════════════════════
-     FEEDBACK
-  ══════════════════════ */
   function setFeedback(msg, type) {
     const el = document.getElementById('feedback');
     el.textContent = msg;
-    el.className   = `feedback${type ? ' ' + type : ''}`;
+    el.className = `feedback${type ? ' ' + type : ''}`;
   }
 
-  /* ══════════════════════
-     HISTORY
-  ══════════════════════ */
   function updateHistory() {
     const list = document.getElementById('attempt-list');
-    const none = document.getElementById('no-attempts');
-    if (none) none.remove();
+    document.getElementById('no-attempts')?.remove();
     list.innerHTML = '';
-    [...attempts].reverse().slice(0, 6).forEach((a, i) => {
+    [...attempts].reverse().slice(0, 6).forEach(a => {
       const li = document.createElement('li');
       li.className = 'attempt-item';
-      li.innerHTML = `
-        <span class="attempt-valves">Valves: ${a.valves || '—'}</span>
-        <span class="attempt-result ${a.correct ? 'ok' : 'fail'}">${a.correct ? '✓ CORRECT' : '✗ WRONG'}</span>
-      `;
+      li.innerHTML = `<span class="attempt-valves">Valves: ${a.valves}</span><span class="attempt-result ${a.correct ? 'ok' : 'fail'}">${a.correct ? '✓ CORRECT' : '✗ WRONG'}</span>`;
       list.appendChild(li);
     });
   }
 
-  /* ══════════════════════
-     HINTS
-  ══════════════════════ */
   function useHint() {
     if (hintsLeft <= 0 || solved) return;
-
-    const used   = 3 - hintsLeft;
-    const hintEl = document.getElementById('hint-text');
-    const btn    = document.getElementById('hint-btn');
-
-    hintEl.textContent = hints[used];
-    hintEl.classList.add('visible');
+    const used = 3 - hintsLeft;
+    document.getElementById('hint-text').textContent = hints[used];
+    document.getElementById('hint-text').classList.add('visible');
     hintsLeft--;
-
     document.getElementById('hint-count').textContent = hintsLeft;
-    btn.textContent = `USE HINT (${hintsLeft} remaining)`;
-    if (hintsLeft <= 0) btn.disabled = true;
-
-    // also save global hints to localStorage
+    document.getElementById('hint-btn').textContent = `USE HINT (${hintsLeft} remaining)`;
+    if (hintsLeft <= 0) document.getElementById('hint-btn').disabled = true;
     const state = JSON.parse(localStorage.getItem('erebus') || '{}');
     state.hintsUsed = (state.hintsUsed || 0) + 1;
     localStorage.setItem('erebus', JSON.stringify(state));
   }
 
-  /* ══════════════════════
-     CHECK IF ALREADY SOLVED
-  ══════════════════════ */
   window.addEventListener('DOMContentLoaded', () => {
     const state = JSON.parse(localStorage.getItem('erebus') || '{}');
     if (state.A) {
       solved = true;
-      // show correct solution
       valveState = [...SOLUTION];
       buildGrid();
       setFeedback('O2 systems already restored. Fragment A: ' + FRAGMENT, 'ok');
@@ -968,8 +578,6 @@
     } else {
       buildGrid();
     }
-
-    // sync hints from global state
     const globalHintsUsed = state.hintsUsed || 0;
     hintsLeft = Math.max(0, 3 - globalHintsUsed);
     document.getElementById('hint-count').textContent = hintsLeft;
