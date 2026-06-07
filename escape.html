@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EREBUS — Escape Pod</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+
+    .room-bg {
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 50% 60% at 50% 40%, rgba(0,255,136,0.04) 0%, transparent 70%),
+        radial-gradient(ellipse 30% 40% at 20% 80%, rgba(0,180,100,0.03) 0%, transparent 60%);
+      pointer-events: none; z-index: 1;
+    }
+
+    .topbar { justify-content: space-between; }
+    .topbar-left { display: flex; align-items: center; gap: 16px; }
+    .breadcrumb {
+      font-family: var(--font-mono); font-size: 10px; color: var(--muted);
+      letter-spacing: 0.1em; display: flex; align-items: center; gap: 8px;
+    }
+    .breadcrumb a { color: var(--muted); text-decoration: none; transition: color 0.2s; }
+    .breadcrumb a:hover { color: var(--accent); }
+    .breadcrumb .sep { color: var(--dim); }
+    .breadcrumb .current { color: var(--green); }
+    .timer-wrap { display: flex; align-items: center; gap: 10px; }
+    .timer-label { font-family: var(--font-mono); font-size: 10px; color: var(--muted); letter-spacing: 0.1em; }
+
+    .shell {
+      max-width: 780px; margin: 0 auto;
+      padding: 40px 28px 100px; position: relative; z-index: 10;
+    }
+
+    /* ── HEADER ── */
+    .pod-header {
+      text-align: center; margin-bottom: 40px;
+      opacity: 0; animation: fadeIn 0.7s ease 0.1s forwards;
+    }
+    .pod-eyebrow {
+      font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.3em;
+      color: var(--muted); margin-bottom: 14px;
+    }
+    .pod-title {
+      font-family: var(--font-hud); font-size: clamp(28px, 5vw, 46px);
+      font-weight: 900; color: #e8f4f8; letter-spacing: 0.1em; margin-bottom: 10px;
+    }
+    .pod-sub {
+      font-family: var(--font-mono); font-size: 12px; color: var(--muted);
+      letter-spacing: 0.1em; line-height: 1.8;
+    }
+
+    /* ── FRAGMENT STATUS ── */
+    .frag-status {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+      margin-bottom: 32px;
+      opacity: 0; animation: fadeIn 0.7s ease 0.3s forwards;
+    }
+    @media (max-width: 560px) { .frag-status { grid-template-columns: 1fr 1fr; } }
+
+    .frag-card {
+      border: 1px solid var(--border); background: var(--panel);
+      padding: 16px 12px; text-align: center;
+      transition: border-color 0.4s, background 0.4s;
+    }
+    .frag-card.loaded {
+      border-color: var(--green); background: rgba(0,255,136,0.04);
+    }
+    .frag-card.missing {
+      border-color: var(--danger); background: rgba(255,59,59,0.04);
+      animation: pulse 2s infinite;
+    }
+    .frag-letter {
+      font-family: var(--font-hud); font-size: 11px; font-weight: 700;
+      letter-spacing: 0.2em; color: var(--muted); margin-bottom: 8px;
+    }
+    .frag-card.loaded .frag-letter { color: var(--green); }
+    .frag-card.missing .frag-letter { color: var(--danger); }
+    .frag-val {
+      font-family: var(--font-hud); font-size: 20px; font-weight: 900;
+      letter-spacing: 0.15em; color: var(--dim);
+      transition: color 0.4s;
+    }
+    .frag-card.loaded .frag-val { color: var(--green); }
+    .frag-card.missing .frag-val { color: var(--danger); font-size: 13px; }
+    .frag-module {
+      font-family: var(--font-mono); font-size: 9px; color: var(--muted);
+      letter-spacing: 0.1em; margin-top: 6px;
+    }
+
+    /* ── KEYPAD PANEL ── */
+    .keypad-panel {
+      border: 1px solid var(--border); background: var(--panel);
+      padding: 36px 40px; position: relative; margin-bottom: 24px;
+      opacity: 0; animation: fadeIn 0.7s ease 0.5s forwards;
+    }
+    .keypad-panel::before, .keypad-panel::after {
+      content: ''; position: absolute; height: 1px; left: 0; right: 0;
+      background: linear-gradient(90deg, transparent, var(--green), transparent);
+      opacity: 0.2;
+    }
+    .keypad-panel::before { top: 0; } .keypad-panel::after { bottom: 0; }
+    .keypad-label {
+      position: absolute; top: -9px; left: 20px;
+      font-family: var(--font-mono); font-size: 10px; color: var(--muted);
+      background: var(--panel); padding: 0 8px; letter-spacing: 0.1em;
+    }
+
+    /* combined code display */
+    .code-display {
+      font-family: var(--font-hud); font-size: clamp(28px, 5vw, 42px);
+      font-weight: 900; letter-spacing: 0.4em; color: #e8f4f8;
+      text-align: center; margin-bottom: 8px;
+      min-height: 56px;
+      display: flex; align-items: center; justify-content: center; gap: 12px;
+    }
+    .code-seg {
+      transition: color 0.4s;
+    }
+    .code-seg.loaded { color: var(--green); }
+    .code-seg.empty  { color: var(--dim); }
+    .code-sep {
+      color: var(--dim); font-size: 20px; opacity: 0.4;
+    }
+    .code-sublabel {
+      font-family: var(--font-mono); font-size: 10px; color: var(--muted);
+      text-align: center; letter-spacing: 0.15em; margin-bottom: 32px;
+    }
+
+    /* input row */
+    .input-row {
+      display: flex; gap: 0; margin-bottom: 20px; border: 1px solid var(--border);
+      position: relative; overflow: hidden;
+    }
+    .input-row::after {
+      content: ''; position: absolute; bottom: 0; left: 0;
+      height: 2px; background: var(--green);
+      width: 0; transition: width 0.4s;
+    }
+    .input-row.active::after { width: 100%; }
+
+    .code-input {
+      flex: 1; font-family: var(--font-hud); font-size: 22px; font-weight: 700;
+      letter-spacing: 0.4em; background: var(--panel-2); border: none; outline: none;
+      color: #e8f4f8; padding: 16px 20px; caret-color: var(--green);
+      text-align: center;
+    }
+    .code-input::placeholder { color: var(--dim); letter-spacing: 0.2em; font-size: 14px; }
+    .code-input:disabled { opacity: 0.5; }
+
+    /* launch button */
+    .launch-btn {
+      width: 100%; font-family: var(--font-hud); font-size: 13px; font-weight: 700;
+      letter-spacing: 0.3em; padding: 18px; border: 1px solid var(--muted);
+      color: var(--muted); background: transparent; cursor: not-allowed;
+      transition: all 0.3s; position: relative; overflow: hidden;
+    }
+    .launch-btn.ready {
+      border-color: var(--green); color: var(--green); cursor: pointer;
+    }
+    .launch-btn.ready::before {
+      content: ''; position: absolute; inset: 0;
+      background: var(--green); transform: translateX(-101%);
+      transition: transform 0.4s ease; z-index: 0;
+    }
+    .launch-btn.ready:hover::before { transform: translateX(0); }
+    .launch-btn.ready:hover { color: var(--bg); }
+    .launch-btn span { position: relative; z-index: 1; }
+
+    .feedback {
+      font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em;
+      text-align: center; margin-top: 14px; min-height: 18px;
+    }
+    .feedback.ok   { color: var(--green); }
+    .feedback.fail { color: var(--danger); }
+    .feedback.warn { color: var(--warn); }
+
+    .lockout-bar {
+      position: absolute; bottom: 0; left: 0; height: 2px;
+      background: var(--danger); width: 100%;
+      transform: scaleX(0); transform-origin: left; transition: none;
+    }
+    .lockout-bar.animating { transform: scaleX(1); transition: transform 15s linear; }
+
+    /* ── MISSING FRAGMENTS WARNING ── */
+    .missing-warn {
+      border: 1px solid var(--danger); background: rgba(255,59,59,0.04);
+      padding: 16px 20px; margin-bottom: 24px; display: none;
+      opacity: 0; animation: fadeIn 0.5s ease forwards;
+    }
+    .missing-warn.show { display: block; }
+    .missing-warn-text {
+      font-family: var(--font-mono); font-size: 12px; color: var(--danger);
+      line-height: 1.8; letter-spacing: 0.05em;
+    }
+    .missing-warn-text a {
+      color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--accent);
+    }
+
+    /* ── WIN SCREEN ── */
+    .win-overlay {
+      position: fixed; inset: 0; background: var(--bg); z-index: 400;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity 1s;
+      flex-direction: column;
+    }
+    .win-overlay.show { opacity: 1; pointer-events: all; }
+
+    .win-card {
+      max-width: 600px; width: 90%; text-align: center; padding: 0 20px;
+    }
+
+    .win-station {
+      font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.3em;
+      color: var(--muted); margin-bottom: 24px;
+      opacity: 0; animation: none;
+    }
+    .win-overlay.show .win-station { animation: fadeIn 0.6s ease 0.5s forwards; }
+
+    .win-title {
+      font-family: var(--font-hud); font-size: clamp(36px, 8vw, 72px);
+      font-weight: 900; letter-spacing: 0.12em; color: var(--green);
+      line-height: 1; margin-bottom: 16px;
+      opacity: 0;
+    }
+    .win-overlay.show .win-title { animation: fadeIn 0.8s ease 0.8s forwards; }
+
+    .win-sub {
+      font-family: var(--font-hud); font-size: 14px; letter-spacing: 0.2em;
+      color: #e8f4f8; margin-bottom: 40px;
+      opacity: 0;
+    }
+    .win-overlay.show .win-sub { animation: fadeIn 0.8s ease 1.1s forwards; }
+
+    .win-divider {
+      height: 1px; background: linear-gradient(90deg, transparent, var(--green), transparent);
+      margin: 0 auto 36px; max-width: 400px;
+      opacity: 0;
+    }
+    .win-overlay.show .win-divider { animation: fadeIn 0.8s ease 1.3s forwards; }
+
+    /* stats */
+    .win-stats {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
+      margin-bottom: 40px; opacity: 0;
+    }
+    .win-overlay.show .win-stats { animation: fadeIn 0.8s ease 1.5s forwards; }
+    .win-stat-val {
+      font-family: var(--font-hud); font-size: 28px; font-weight: 900;
+      color: var(--green); margin-bottom: 6px;
+    }
+    .win-stat-label {
+      font-family: var(--font-mono); font-size: 10px; color: var(--muted);
+      letter-spacing: 0.15em;
+    }
+
+    /* final lore */
+    .win-lore {
+      border: 1px solid var(--border); background: var(--panel);
+      padding: 24px 28px; text-align: left; margin-bottom: 32px;
+      position: relative; opacity: 0;
+    }
+    .win-overlay.show .win-lore { animation: fadeIn 0.8s ease 1.8s forwards; }
+    .win-lore::after {
+      content: ''; position: absolute; top: 0; left: 0;
+      width: 3px; height: 100%; background: var(--green);
+    }
+    .win-lore-label {
+      font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.2em;
+      color: var(--muted); margin-bottom: 12px;
+    }
+    .win-lore-text {
+      font-family: var(--font-mono); font-size: 12px; line-height: 1.9;
+      color: var(--text);
+    }
+    .win-lore-text strong { color: var(--warn); font-weight: normal; }
+
+    .win-actions {
+      display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
+      opacity: 0;
+    }
+    .win-overlay.show .win-actions { animation: fadeIn 0.8s ease 2.1s forwards; }
+    .win-btn {
+      font-family: var(--font-hud); font-size: 11px; font-weight: 700;
+      letter-spacing: 0.2em; padding: 14px 28px;
+      border: 1px solid var(--accent); color: var(--accent);
+      background: transparent; cursor: pointer; text-decoration: none; transition: all 0.25s;
+    }
+    .win-btn:hover { background: rgba(0,212,255,0.08); }
+    .win-btn.secondary { border-color: var(--border); color: var(--muted); }
+    .win-btn.secondary:hover { border-color: var(--muted); color: var(--text); }
+
+    /* stars bg on win */
+    .stars {
+      position: fixed; inset: 0; z-index: -1; overflow: hidden; display: none;
+    }
+    .win-overlay.show ~ .stars { display: block; }
+    .star {
+      position: absolute; background: #fff; border-radius: 50%;
+      animation: twinkle var(--d) ease-in-out infinite var(--delay);
+    }
+    @keyframes twinkle {
+      0%,100% { opacity: 0.1; transform: scale(1); }
+      50%      { opacity: 0.8; transform: scale(1.4); }
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="scanlines"></div>
+<div class="vignette"></div>
+<div class="room-bg"></div>
+
+<!-- WIN SCREEN -->
+<div class="win-overlay" id="win-overlay">
+  <div class="win-card">
+    <div class="win-station">EREBUS STATION // POD 7 LAUNCHED // RESCUE BEACON ACTIVE</div>
+    <div class="win-title">ESCAPED</div>
+    <div class="win-sub">ENGINEER MIRA KOVAČ — SURVIVOR</div>
+    <div class="win-divider"></div>
+    <div class="win-stats">
+      <div>
+        <div class="win-stat-val" id="win-time">—</div>
+        <div class="win-stat-label">TIME REMAINING</div>
+      </div>
+      <div>
+        <div class="win-stat-val" id="win-modules">4 / 4</div>
+        <div class="win-stat-label">MODULES RESTORED</div>
+      </div>
+      <div>
+        <div class="win-stat-val" id="win-hints">—</div>
+        <div class="win-stat-label">HINTS USED</div>
+      </div>
+    </div>
+    <div class="win-lore">
+      <div class="win-lore-label">// FINAL TRANSMISSION — POD 7 BLACK BOX — STARDATE 2347.156</div>
+      <div class="win-lore-text">
+        Pod 7 launched successfully at 04:31 station time. Rescue beacon broadcasting on all emergency channels.<br><br>
+        Recovered from Med Bay: <strong>biological sample containers, Lab 7 origin</strong>. Dr. Petrov's logs confirm Helix Corp was conducting unauthorized pathogen research aboard Erebus Station. The mutation was not an accident.<br><br>
+        The original crew evacuated to Pod Bay 3 on Day 91. Their pod's transponder has not been detected. <strong>Status: unknown.</strong><br><br>
+        This recording, along with Petrov's logs and the Lab 7 samples, has been transmitted to the Interstellar Science Authority. Whatever Helix Corp was building out here — it won't stay buried.
+      </div>
+    </div>
+    <div class="win-actions">
+      <button class="win-btn" onclick="playAgain()">PLAY AGAIN</button>
+      <a href="index.html" class="win-btn secondary">RETURN TO BRIEFING</a>
+    </div>
+  </div>
+</div>
+<div class="stars" id="stars"></div>
+
+<!-- TOP BAR -->
+<header class="topbar">
+  <div class="topbar-left">
+    <div class="breadcrumb">
+      <a href="hub.html">HUB</a>
+      <span class="sep">/</span>
+      <span class="current">ESCAPE POD — LAUNCH BAY 7</span>
+    </div>
+  </div>
+  <div class="timer-wrap">
+    <div class="timer-label">TIME REMAINING</div>
+    <div class="timer" id="timer">20:00</div>
+  </div>
+  <div class="badge badge--danger" style="animation:pulse 1s infinite">EMERGENCY</div>
+</header>
+
+<main class="shell">
+
+  <!-- HEADER -->
+  <div class="pod-header">
+    <div class="pod-eyebrow">ESCAPE POD 7 — LAUNCH BAY // DOCKING CLAMPS ENGAGED</div>
+    <div class="pod-title">Launch Sequence</div>
+    <div class="pod-sub">
+      Enter the 16-digit combined keycode to disengage docking clamps<br>
+      and initiate emergency launch protocol.
+    </div>
+  </div>
+
+  <!-- FRAGMENT STATUS -->
+  <div class="frag-status" id="frag-status"></div>
+
+  <!-- MISSING WARNING -->
+  <div class="missing-warn" id="missing-warn">
+    <div class="missing-warn-text" id="missing-warn-text"></div>
+  </div>
+
+  <!-- KEYPAD -->
+  <div class="keypad-panel" id="keypad-panel">
+    <div class="keypad-label">POD 7 — DOCKING CLAMP RELEASE CONSOLE</div>
+
+    <div class="code-display" id="code-display"></div>
+    <div class="code-sublabel">COMBINED KEYCODE — ALL FOUR FRAGMENTS REQUIRED</div>
+
+    <div class="input-row" id="input-row">
+      <input
+        class="code-input"
+        id="code-input"
+        type="text"
+        maxlength="16"
+        placeholder="ENTER 16-DIGIT CODE"
+        autocomplete="off"
+        spellcheck="false"
+        inputmode="numeric"
+        onkeydown="if(event.key==='Enter') attemptLaunch()"
+        oninput="onInputChange()"
+      >
+    </div>
+
+    <button class="launch-btn" id="launch-btn" onclick="attemptLaunch()">
+      <span>INITIATE LAUNCH SEQUENCE</span>
+    </button>
+
+    <div class="feedback" id="feedback"></div>
+    <div class="lockout-bar" id="lockout-bar"></div>
+  </div>
+
+</main>
+
+<!-- BOTTOM HUD -->
+<div class="hud-bar">
+  <div class="hud-item"><div class="hud-dot"></div>DOCKING CLAMPS: <span id="hud-clamps">ENGAGED</span></div>
+  <div class="hud-item">FRAGMENTS: <span id="hud-frags">0 / 4</span></div>
+  <div class="hud-item">BEACON: <span id="hud-beacon">OFFLINE</span></div>
+</div>
+
+<script>
+  /* ══════════════════════
+     FRAGMENT VALUES
+     Must match what rooms save to localStorage
+  ══════════════════════ */
+  const FRAGMENTS = { A:'4471', B:'8823', C:'1196', D:'5502' };
+  const MODULES   = { A:'O2 CONTROL', B:'REACTOR BAY', C:'COMMS ARRAY', D:'MED BAY' };
+  const SOLUTION  = '4471882311965502'; // A+B+C+D concatenated
+
+  let solved    = false;
+  let lockedOut = false;
+
+  /* ── TIMER ── */
+  let totalSeconds = 20 * 60;
+  const savedTime = localStorage.getItem('erebus-time');
+  if (savedTime) totalSeconds = parseInt(savedTime, 10);
+  const timerEl = document.getElementById('timer');
+  function fmt(s){ return `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`; }
+  timerEl.textContent = fmt(totalSeconds);
+  const timerInterval = setInterval(() => {
+    totalSeconds--;
+    localStorage.setItem('erebus-time', totalSeconds);
+    timerEl.textContent = fmt(totalSeconds);
+    if (totalSeconds <= 60) timerEl.classList.add('critical');
+    if (totalSeconds <= 0) {
+      clearInterval(timerInterval);
+      document.body.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:'Orbitron',sans-serif;font-size:28px;color:#ff3b3b;letter-spacing:0.15em;text-align:center;flex-direction:column;gap:16px;background:#060a0f;"><div>LIFE SUPPORT FAILURE</div><div style="font-size:12px;color:#4a6a7a;font-family:'Share Tech Mono',monospace;letter-spacing:0.2em">MISSION FAILED — <a href="hub.html" style="color:#00d4ff">RETURN TO HUB</a></div></div>`;
+    }
+  }, 1000);
+
+  /* ── RENDER STATE ── */
+  function renderState() {
+    const state   = JSON.parse(localStorage.getItem('erebus') || '{}');
+    const fragBar = document.getElementById('frag-status');
+    const display = document.getElementById('code-display');
+    let collected = 0;
+    let missing   = [];
+
+    fragBar.innerHTML  = '';
+    display.innerHTML  = '';
+
+    ['A','B','C','D'].forEach((id, i) => {
+      const has = !!state[id];
+      if (has) collected++;
+      else missing.push(id);
+
+      // fragment card
+      const card = document.createElement('div');
+      card.className = `frag-card ${has ? 'loaded' : 'missing'}`;
+      card.innerHTML = `
+        <div class="frag-letter">FRAG ${id}</div>
+        <div class="frag-val">${has ? FRAGMENTS[id] : 'MISSING'}</div>
+        <div class="frag-module">${MODULES[id]}</div>
+      `;
+      fragBar.appendChild(card);
+
+      // code display segment
+      if (i > 0) {
+        const sep = document.createElement('span');
+        sep.className = 'code-sep';
+        sep.textContent = '·';
+        display.appendChild(sep);
+      }
+      const seg = document.createElement('span');
+      seg.className = `code-seg ${has ? 'loaded' : 'empty'}`;
+      seg.textContent = has ? FRAGMENTS[id] : '????';
+      display.appendChild(seg);
+    });
+
+    document.getElementById('hud-frags').textContent = `${collected} / 4`;
+
+    // missing warning
+    const warn = document.getElementById('missing-warn');
+    if (missing.length > 0) {
+      const names = missing.map(id => MODULES[id]).join(', ');
+      const links = missing.map(id => {
+        const file = { A:'rooms/o2.html', B:'rooms/reactor.html', C:'rooms/comms.html', D:'rooms/medbay.html' }[id];
+        return `<a href="${file}">${MODULES[id]}</a>`;
+      }).join(', ');
+      document.getElementById('missing-warn-text').innerHTML =
+        `⚠ LAUNCH BLOCKED — Missing fragment${missing.length > 1 ? 's' : ''}: ${links}. Complete ${missing.length > 1 ? 'these modules' : 'this module'} first.`;
+      warn.classList.add('show');
+    } else {
+      warn.classList.remove('show');
+    }
+
+    // pre-fill input if all collected
+    if (collected === 4) {
+      document.getElementById('code-input').value = SOLUTION;
+      document.getElementById('launch-btn').classList.add('ready');
+      document.getElementById('input-row').classList.add('active');
+      setFeedback('All fragments loaded. Enter the code to launch.', 'ok');
+    }
+
+    return collected;
+  }
+
+  /* ── INPUT CHANGE ── */
+  function onInputChange() {
+    document.getElementById('input-row').classList.add('active');
+    setFeedback('', '');
+    const val = document.getElementById('code-input').value;
+    const state = JSON.parse(localStorage.getItem('erebus') || '{}');
+    const allCollected = ['A','B','C','D'].every(id => !!state[id]);
+    if (allCollected) document.getElementById('launch-btn').classList.add('ready');
+  }
+
+  /* ── ATTEMPT LAUNCH ── */
+  function attemptLaunch() {
+    if (lockedOut || solved) return;
+
+    const state = JSON.parse(localStorage.getItem('erebus') || '{}');
+    const allCollected = ['A','B','C','D'].every(id => !!state[id]);
+
+    if (!allCollected) {
+      setFeedback('Cannot launch — not all fragments collected.', 'fail');
+      return;
+    }
+
+    const val = document.getElementById('code-input').value.trim().replace(/\s/g,'');
+
+    if (val === SOLUTION) {
+      handleWin();
+    } else if (val.length < 16) {
+      setFeedback(`Code must be 16 digits. You entered ${val.length}.`, 'warn');
+    } else {
+      triggerLockout();
+      setFeedback('INVALID CODE — docking clamps hold. System locked for 15s.', 'fail');
+    }
+  }
+
+  /* ── WIN ── */
+  function handleWin() {
+    solved = true;
+    clearInterval(timerInterval);
+
+    const state      = JSON.parse(localStorage.getItem('erebus') || '{}');
+    const hintsUsed  = state.hintsUsed || 0;
+    const timeLeft   = fmt(totalSeconds);
+
+    document.getElementById('win-time').textContent    = timeLeft;
+    document.getElementById('win-hints').textContent   = hintsUsed;
+    document.getElementById('hud-clamps').textContent  = 'RELEASED';
+    document.getElementById('hud-clamps').style.color  = 'var(--green)';
+    document.getElementById('hud-beacon').textContent  = 'BROADCASTING';
+    document.getElementById('hud-beacon').style.color  = 'var(--green)';
+
+    buildStars();
+
+    setTimeout(() => {
+      document.getElementById('win-overlay').classList.add('show');
+    }, 600);
+  }
+
+  /* ── LOCKOUT ── */
+  function triggerLockout() {
+    lockedOut = true;
+    document.getElementById('launch-btn').classList.remove('ready');
+    document.getElementById('code-input').disabled = true;
+    const bar = document.getElementById('lockout-bar');
+    bar.classList.remove('animating'); void bar.offsetWidth;
+    bar.classList.add('animating');
+    setTimeout(() => {
+      lockedOut = false;
+      document.getElementById('code-input').disabled = false;
+      document.getElementById('launch-btn').classList.add('ready');
+      bar.classList.remove('animating');
+      setFeedback('System reset. Try again.', '');
+    }, 15000);
+  }
+
+  function setFeedback(msg, type) {
+    const el = document.getElementById('feedback');
+    el.textContent = msg;
+    el.className = `feedback${type ? ' ' + type : ''}`;
+  }
+
+  /* ── PLAY AGAIN ── */
+  function playAgain() {
+    localStorage.removeItem('erebus');
+    localStorage.removeItem('erebus-time');
+    window.location.href = 'index.html';
+  }
+
+  /* ── STAR FIELD ── */
+  function buildStars() {
+    const container = document.getElementById('stars');
+    container.innerHTML = '';
+    for (let i = 0; i < 120; i++) {
+      const star = document.createElement('div');
+      const size = Math.random() * 2.5 + 0.5;
+      star.className = 'star';
+      star.style.cssText = `
+        width:${size}px; height:${size}px;
+        top:${Math.random()*100}%;
+        left:${Math.random()*100}%;
+        --d:${2 + Math.random()*4}s;
+        --delay:-${Math.random()*4}s;
+        opacity:${Math.random()*0.6};
+      `;
+      container.appendChild(star);
+    }
+  }
+
+  /* ── INIT ── */
+  window.addEventListener('DOMContentLoaded', renderState);
+</script>
+</body>
+</html>
