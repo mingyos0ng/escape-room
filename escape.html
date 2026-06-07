@@ -198,48 +198,57 @@
       color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--accent);
     }
 
-    /* ── WIN SCREEN ── */
-    .win-overlay {
-      position: fixed; inset: 0; background: var(--bg); z-index: 400;
-      display: flex; align-items: center; justify-content: center;
-      opacity: 0; pointer-events: none; transition: opacity 1s;
-      flex-direction: column;
-    }
-    .win-overlay.show { opacity: 1; pointer-events: all; }
+   <!-- WIN SCREEN -->
+<div class="win-overlay" id="win-overlay">
 
-    .win-card {
-      max-width: 600px; width: 90%; text-align: center; padding: 0 20px;
-    }
+  <!-- PHASE 1: typewriter terminal -->
+  <div class="win-terminal" id="win-terminal">
+    <div class="wt-inner">
+      <div class="wt-header">
+        <span class="wt-label">POD 7 // LAUNCH SEQUENCE LOG // REAL-TIME</span>
+        <span class="wt-time" id="wt-clock">04:31:00</span>
+      </div>
+      <div class="wt-lines" id="wt-lines"></div>
+      <div class="wt-cursor" id="wt-cursor">_</div>
+    </div>
+  </div>
 
-    .win-station {
-      font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.3em;
-      color: var(--muted); margin-bottom: 24px;
-      opacity: 0; animation: none;
-    }
-    .win-overlay.show .win-station { animation: fadeIn 0.6s ease 0.5s forwards; }
+  <!-- PHASE 2: win card (hidden until typewriter finishes) -->
+  <div class="win-card" id="win-card" style="display:none">
+    <div class="win-station">EREBUS STATION // POD 7 LAUNCHED // RESCUE BEACON ACTIVE</div>
+    <div class="win-title">ESCAPED</div>
+    <div class="win-sub">ENGINEER MIRA KOVAČ — SURVIVOR</div>
+    <div class="win-divider"></div>
+    <div class="win-stats">
+      <div>
+        <div class="win-stat-val" id="win-time">—</div>
+        <div class="win-stat-label">TIME REMAINING</div>
+      </div>
+      <div>
+        <div class="win-stat-val" id="win-modules">4 / 4</div>
+        <div class="win-stat-label">MODULES RESTORED</div>
+      </div>
+      <div>
+        <div class="win-stat-val" id="win-hints">—</div>
+        <div class="win-stat-label">HINTS USED</div>
+      </div>
+    </div>
+    <div class="win-lore">
+      <div class="win-lore-label">// FINAL TRANSMISSION — POD 7 BLACK BOX — STARDATE 2347.156</div>
+      <div class="win-lore-text">
+        Pod 7 launched successfully at 04:31 station time. Rescue beacon broadcasting on all emergency channels.<br><br>
+        Recovered from Med Bay: <strong>biological sample containers, Lab 7 origin</strong>. Dr. Petrov's logs confirm Helix Corp was conducting unauthorized pathogen research aboard Erebus Station. The mutation was not an accident.<br><br>
+        The original crew evacuated to Pod Bay 3 on Day 91. Their pod's transponder has not been detected. <strong>Status: unknown.</strong><br><br>
+        This recording, along with Petrov's logs and the Lab 7 samples, has been transmitted to the Interstellar Science Authority. Whatever Helix Corp was building out here — it won't stay buried.
+      </div>
+    </div>
+    <div class="win-actions">
+      <button class="win-btn" onclick="playAgain()">PLAY AGAIN</button>
+      <a href="index.html" class="win-btn secondary">RETURN TO BRIEFING</a>
+    </div>
+  </div>
 
-    .win-title {
-      font-family: var(--font-hud); font-size: clamp(36px, 8vw, 72px);
-      font-weight: 900; letter-spacing: 0.12em; color: var(--green);
-      line-height: 1; margin-bottom: 16px;
-      opacity: 0;
-    }
-    .win-overlay.show .win-title { animation: fadeIn 0.8s ease 0.8s forwards; }
-
-    .win-sub {
-      font-family: var(--font-hud); font-size: 14px; letter-spacing: 0.2em;
-      color: #e8f4f8; margin-bottom: 40px;
-      opacity: 0;
-    }
-    .win-overlay.show .win-sub { animation: fadeIn 0.8s ease 1.1s forwards; }
-
-    .win-divider {
-      height: 1px; background: linear-gradient(90deg, transparent, var(--green), transparent);
-      margin: 0 auto 36px; max-width: 400px;
-      opacity: 0;
-    }
-    .win-overlay.show .win-divider { animation: fadeIn 0.8s ease 1.3s forwards; }
-
+</div>
     /* stats */
     .win-stats {
       display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
@@ -304,6 +313,61 @@
       0%,100% { opacity: 0.1; transform: scale(1); }
       50%      { opacity: 0.8; transform: scale(1.4); }
     }
+
+    /* ── TYPEWRITER TERMINAL ── */
+.win-terminal {
+  width: 100%; max-width: 680px; padding: 0 20px;
+  display: flex; align-items: center; justify-content: center;
+}
+.wt-inner {
+  width: 100%; border: 1px solid var(--border);
+  background: var(--panel); padding: 28px 32px;
+  position: relative;
+}
+.wt-inner::before, .wt-inner::after {
+  content: ''; position: absolute; height: 1px; left: 0; right: 0;
+  background: linear-gradient(90deg, transparent, var(--green), transparent);
+  opacity: 0.3;
+}
+.wt-inner::before { top: 0; } .wt-inner::after { bottom: 0; }
+
+.wt-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border);
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.15em;
+}
+.wt-label { color: var(--muted); }
+.wt-time  { color: var(--green); }
+
+.wt-lines { min-height: 200px; }
+.wt-line {
+  font-family: var(--font-mono); font-size: 12px; line-height: 1.9;
+  margin-bottom: 2px; display: flex; gap: 10px; align-items: baseline;
+}
+.wt-line .wt-prompt { color: var(--muted); flex-shrink: 0; }
+.wt-line .wt-text   { color: var(--text); }
+.wt-line .wt-text.ok      { color: var(--green); }
+.wt-line .wt-text.warn    { color: var(--warn); }
+.wt-line .wt-text.danger  { color: var(--danger); }
+.wt-line .wt-text.accent  { color: var(--accent); }
+.wt-line .wt-text.muted   { color: var(--muted); }
+.wt-line .wt-text.heading {
+  color: #e8f4f8; font-family: var(--font-hud);
+  font-size: 11px; letter-spacing: 0.15em;
+}
+
+.wt-cursor {
+  font-family: var(--font-mono); font-size: 14px; color: var(--green);
+  animation: blink 0.8s step-end infinite; margin-top: 4px;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+/* win card phase 2 — fade in after typewriter */
+.win-card {
+  opacity: 0; animation: none;
+  max-width: 600px; width: 90%; text-align: center; padding: 0 20px;
+}
+.win-card.reveal { animation: fadeIn 1s ease forwards; }
 
   </style>
 </head>
@@ -557,28 +621,120 @@
     }
   }
 
-  /* ── WIN ── */
-  function handleWin() {
-    solved = true;
-    clearInterval(timerInterval);
+ /* ── WIN ── */
+function handleWin() {
+  solved = true;
+  clearInterval(timerInterval);
 
-    const state      = JSON.parse(localStorage.getItem('erebus') || '{}');
-    const hintsUsed  = state.hintsUsed || 0;
-    const timeLeft   = fmt(totalSeconds);
+  const state     = JSON.parse(localStorage.getItem('erebus') || '{}');
+  const hintsUsed = state.hintsUsed || 0;
+  const timeLeft  = fmt(totalSeconds);
 
-    document.getElementById('win-time').textContent    = timeLeft;
-    document.getElementById('win-hints').textContent   = hintsUsed;
-    document.getElementById('hud-clamps').textContent  = 'RELEASED';
-    document.getElementById('hud-clamps').style.color  = 'var(--green)';
-    document.getElementById('hud-beacon').textContent  = 'BROADCASTING';
-    document.getElementById('hud-beacon').style.color  = 'var(--green)';
+  document.getElementById('win-time').textContent  = timeLeft;
+  document.getElementById('win-hints').textContent = hintsUsed;
+  document.getElementById('hud-clamps').textContent = 'RELEASED';
+  document.getElementById('hud-clamps').style.color = 'var(--green)';
+  document.getElementById('hud-beacon').textContent = 'BROADCASTING';
+  document.getElementById('hud-beacon').style.color = 'var(--green)';
 
-    buildStars();
+  buildStars();
+
+  // show overlay first, then run typewriter
+  setTimeout(() => {
+    document.getElementById('win-overlay').classList.add('show');
+    setTimeout(() => runTypewriter(timeLeft), 400);
+  }, 600);
+}
+
+/* ── TYPEWRITER ENGINE ── */
+function runTypewriter(timeLeft) {
+  const lines = [
+    { prompt: '[04:31:02]', text: 'INITIATING EMERGENCY LAUNCH SEQUENCE...', style: 'heading', delay: 0 },
+    { prompt: '[04:31:02]', text: 'Verifying keycode integrity...', style: '', delay: 800 },
+    { prompt: '[04:31:03]', text: 'KEYCODE ACCEPTED — all four fragments verified.', style: 'ok', delay: 1800 },
+    { prompt: '[04:31:03]', text: 'Disengaging docking clamp 1 of 4...', style: 'muted', delay: 2800 },
+    { prompt: '[04:31:04]', text: 'Disengaging docking clamp 2 of 4...', style: 'muted', delay: 3400 },
+    { prompt: '[04:31:04]', text: 'Disengaging docking clamp 3 of 4...', style: 'muted', delay: 4000 },
+    { prompt: '[04:31:05]', text: 'Disengaging docking clamp 4 of 4... RELEASED.', style: 'ok', delay: 4600 },
+    { prompt: '[04:31:05]', text: '────────────────────────────────────', style: 'muted', delay: 5400 },
+    { prompt: '[04:31:05]', text: 'Sealing airlock. Pressurizing cabin.', style: '', delay: 5800 },
+    { prompt: '[04:31:07]', text: `Emergency power remaining: ${timeLeft} — sufficient.`, style: 'warn', delay: 6800 },
+    { prompt: '[04:31:08]', text: 'Igniting primary thruster...', style: '', delay: 7800 },
+    { prompt: '[04:31:09]', text: 'THRUST NOMINAL. Pod separating from station.', style: 'ok', delay: 9000 },
+    { prompt: '[04:31:11]', text: '────────────────────────────────────', style: 'muted', delay: 10000 },
+    { prompt: '[04:31:11]', text: 'Broadcasting on all emergency channels.', style: 'accent', delay: 10600 },
+    { prompt: '[04:31:12]', text: 'Rescue beacon ACTIVE. Signal strength: strong.', style: 'accent', delay: 11400 },
+    { prompt: '[04:31:14]', text: '────────────────────────────────────', style: 'muted', delay: 12200 },
+    { prompt: '[04:31:14]', text: 'Uploading black box data to beacon...', style: '', delay: 12800 },
+    { prompt: '[04:31:15]', text: 'Petrov logs: TRANSMITTED.', style: 'ok', delay: 13800 },
+    { prompt: '[04:31:15]', text: 'Lab 7 sample manifest: TRANSMITTED.', style: 'ok', delay: 14600 },
+    { prompt: '[04:31:16]', text: 'Okafor personal logs: TRANSMITTED.', style: 'ok', delay: 15400 },
+    { prompt: '[04:31:17]', text: '────────────────────────────────────', style: 'muted', delay: 16400 },
+    { prompt: '[04:31:17]', text: 'EREBUS STATION receding. Hull integrity: holding.', style: 'muted', delay: 17000 },
+    { prompt: '[04:31:19]', text: 'Estimated rescue intercept: 11.4 hours.', style: '', delay: 18000 },
+    { prompt: '[04:31:20]', text: '════════════════════════════════════', style: 'muted', delay: 19000 },
+    { prompt: '[04:31:20]', text: 'MISSION COMPLETE. ENGINEER KOVAČ — SURVIVOR.', style: 'heading', delay: 19800 },
+    { prompt: '[04:31:20]', text: '════════════════════════════════════', style: 'muted', delay: 20600 },
+  ];
+
+  const container = document.getElementById('wt-lines');
+  const cursor    = document.getElementById('wt-cursor');
+
+  // animate clock
+  let clockSec = 31 * 60 + 2; // 04:31:02
+  const clockEl = document.getElementById('wt-clock');
+  const clockInterval = setInterval(() => {
+    clockSec++;
+    const h  = Math.floor(clockSec / 3600).toString().padStart(2,'0');
+    const m  = Math.floor((clockSec % 3600) / 60).toString().padStart(2,'0');
+    const s  = (clockSec % 60).toString().padStart(2,'0');
+    clockEl.textContent = `${h}:${m}:${s}`;
+  }, 1000);
+
+  lines.forEach(({ prompt, text, style, delay }) => {
+    setTimeout(() => {
+      const line = document.createElement('div');
+      line.className = 'wt-line';
+      line.innerHTML = `<span class="wt-prompt">${prompt}</span><span class="wt-text ${style}"></span>`;
+      container.appendChild(line);
+      cursor.after(line); // keep cursor at bottom
+
+      const textEl = line.querySelector('.wt-text');
+      let i = 0;
+      const speed = 28; // ms per character
+      const typeInterval = setInterval(() => {
+        textEl.textContent += text[i];
+        i++;
+        // auto-scroll
+        container.scrollTop = container.scrollHeight;
+        if (i >= text.length) clearInterval(typeInterval);
+      }, speed);
+    }, delay);
+  });
+
+  // after last line finishes typing, transition to win card
+  const lastLine   = lines[lines.length - 1];
+  const lastFinish = lastLine.delay + lastLine.text.length * 28 + 1200;
+
+  setTimeout(() => {
+    clearInterval(clockInterval);
+    cursor.style.display = 'none';
+
+    // fade out terminal, fade in win card
+    const terminal = document.getElementById('win-terminal');
+    terminal.style.transition = 'opacity 1s';
+    terminal.style.opacity    = '0';
 
     setTimeout(() => {
-      document.getElementById('win-overlay').classList.add('show');
-    }, 600);
-  }
+      terminal.style.display = 'none';
+      const card = document.getElementById('win-card');
+      card.style.display = 'block';
+      void card.offsetWidth;
+      card.classList.add('reveal');
+    }, 1000);
+
+  }, lastFinish);
+}
 
   /* ── LOCKOUT ── */
   function triggerLockout() {
