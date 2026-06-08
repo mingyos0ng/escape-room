@@ -458,22 +458,22 @@
     setTimeout(() => document.getElementById('success-overlay').classList.add('show'), 800);
   }
 
-  function triggerLockout() {
-    lockedOut = true;
-    document.getElementById('submit-btn').disabled = true;
-    document.getElementById('decode-input').disabled = true;
-    const bar = document.getElementById('lockout-bar');
-    bar.classList.remove('animating'); void bar.offsetWidth;
-    bar.classList.add('animating');
-    setTimeout(() => {
-      lockedOut = false;
-      document.getElementById('submit-btn').disabled = false;
-      document.getElementById('decode-input').disabled = false;
-      document.getElementById('decode-input').focus();
-      bar.classList.remove('animating');
-      setFeedback('Unlocked. Try again.', '');
-    }, 15000);
-  }
+function triggerLockout() {
+  lockedOut = true;
+  document.getElementById('submit-btn').disabled = true;
+  document.getElementById('decode-input').disabled = true;
+  const bar = document.getElementById('lockout-bar');
+  bar.classList.remove('animating'); void bar.offsetWidth;
+  bar.classList.add('animating');
+  setTimeout(() => {
+    lockedOut = false;
+    document.getElementById('submit-btn').disabled = false;
+    document.getElementById('decode-input').disabled = false;
+    document.getElementById('decode-input').focus();
+    bar.classList.remove('animating');
+    setFeedback('Unlocked. Try again.', '');
+  }, 30000);
+}
 
   function setFeedback(msg, type) {
     const el = document.getElementById('feedback');
