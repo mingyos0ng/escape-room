@@ -488,15 +488,29 @@
       if (has) collected++;
       else missing.push(id);
 
-      const card = document.createElement('div');
-      card.className = `frag-card ${has ? 'loaded' : 'missing'}`;
-      card.innerHTML = `
-        <div class="frag-letter">FRAG ${id}</div>
-        <div class="frag-val">${has ? FRAGMENTS[id] : 'MISSING'}</div>
-        <div class="frag-module">${MODULES[id]}</div>
-      `;
-      fragBar.appendChild(card);
+const card = document.createElement('div');
+card.className = `frag-card ${has ? 'loaded' : 'missing'}`;
+card.innerHTML = `
+  <div class="frag-letter">FRAG ${id}</div>
+  <div class="frag-val" id="frag-val-${id}"
+       data-val="${has ? FRAGMENTS[id] : ''}"
+       onclick="revealFrag('${id}')"
+       style="cursor:${has ? 'pointer' : 'default'}"
+  >${has ? '████' : 'MISSING'}</div>
+  <div class="frag-module" id="frag-module-${id}">${has ? 'tap to reveal' : MODULES[id]}</div>
+`;
+fragBar.appendChild(card);
 
+      function revealFrag(id) {
+  const el  = document.getElementById(`frag-val-${id}`);
+  const sub = document.getElementById(`frag-module-${id}`);
+  if (!el || !el.dataset.val) return;
+  el.textContent  = el.dataset.val;
+  el.style.cursor = 'default';
+  el.onclick      = null;
+  if (sub) sub.textContent = MODULES[id];
+}
+      
       if (i > 0) {
         const sep = document.createElement('span');
         sep.className = 'code-sep';
