@@ -15,7 +15,7 @@
       pointer-events: none; z-index: 1;
     }
 
-    .topbar { gap: 0; justify-content: space-between; }
+    .topbar { justify-content: space-between; }
     .topbar-left { display: flex; align-items: center; gap: 16px; }
     .breadcrumb {
       font-family: var(--font-mono); font-size: 10px; color: var(--muted);
@@ -51,30 +51,32 @@
     }
 
     .room-body {
-      display: grid; grid-template-columns: 1fr 300px;
+      display: grid; grid-template-columns: 1fr 280px;
       gap: 20px; align-items: start;
     }
     @media (max-width: 680px) { .room-body { grid-template-columns: 1fr; } }
 
-    .lore-log {
+    /* ── WALL NOTICE ── */
+    .wall-notice {
       border: 1px solid var(--border); background: var(--panel);
-      padding: 20px 22px; margin-bottom: 20px; position: relative;
+      padding: 18px 20px; margin-bottom: 16px; position: relative;
       opacity: 0; animation: fadeIn 0.6s ease 0.2s forwards;
     }
-    .lore-log::after {
+    .wall-notice::after {
       content: ''; position: absolute; top: 0; left: 0;
       width: 3px; height: 100%; background: var(--danger);
     }
-    .log-entry {
+    .notice-text {
       font-family: var(--font-mono); font-size: 12px; line-height: 1.9; color: var(--text);
     }
-    .log-entry .ts    { color: var(--muted); }
-    .log-entry .hi    { color: var(--accent); }
-    .log-entry .alert { color: var(--danger); }
+    .notice-text .hi    { color: var(--accent); }
+    .notice-text .alert { color: var(--danger); }
+    .notice-text .ts    { color: var(--muted); }
 
+    /* ── VALVE PANEL ── */
     .valve-panel {
       border: 1px solid var(--border); background: var(--panel);
-      padding: 28px; position: relative;
+      padding: 24px; position: relative;
       opacity: 0; animation: fadeIn 0.6s ease 0.3s forwards;
     }
     .valve-panel-label {
@@ -83,66 +85,10 @@
       background: var(--panel); padding: 0 8px; letter-spacing: 0.1em;
     }
 
-    .valve-grid {
-      display: grid; grid-template-columns: repeat(4, 1fr);
-      gap: 14px; margin: 8px 0 24px;
-    }
-
-    .valve {
-      border: 1px solid var(--border); background: var(--panel-2);
-      padding: 16px 10px 12px; display: flex; flex-direction: column;
-      align-items: center; gap: 10px; cursor: pointer;
-      transition: border-color 0.2s, background 0.2s;
-      position: relative; user-select: none;
-    }
-    .valve:hover:not(.locked-out) { border-color: var(--border-hi); }
-    .valve.open { border-color: var(--accent); background: rgba(0,212,255,0.04); }
-
-    .valve-visual { width: 48px; height: 48px; position: relative; }
-    .valve-pipe-h {
-      position: absolute; top: 50%; left: 0; right: 0;
-      height: 8px; margin-top: -4px;
-      background: var(--dim); border-radius: 2px; transition: background 0.3s;
-    }
-    .valve.open .valve-pipe-h { background: rgba(0,212,255,0.3); }
-    .valve-body {
-      position: absolute; top: 50%; left: 50%;
-      width: 18px; height: 18px; margin: -9px 0 0 -9px;
-      background: var(--border); border-radius: 50%;
-      border: 2px solid var(--dim); transition: background 0.3s, border-color 0.3s; z-index: 2;
-    }
-    .valve.open .valve-body { border-color: var(--accent); }
-    .valve-stem {
-      position: absolute; top: 0; left: 50%;
-      width: 4px; height: 12px; margin-left: -2px;
-      background: var(--dim); border-radius: 2px; transition: background 0.3s; z-index: 1;
-    }
-    .valve-handle {
-      position: absolute; top: 0; left: 50%;
-      width: 16px; height: 5px; margin-left: -8px;
-      background: var(--dim); border-radius: 2px;
-      transition: transform 0.3s, background 0.3s; z-index: 3;
-    }
-    .valve.open .valve-handle { transform: rotate(90deg); background: var(--accent); }
-
-    .valve-id {
-      font-family: var(--font-hud); font-size: 15px; font-weight: 900;
-      color: var(--muted); transition: color 0.3s;
-    }
-    .valve.open .valve-id { color: var(--accent); }
-    .valve-label {
-      font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.1em;
-      color: var(--muted); text-align: center; transition: color 0.3s;
-    }
-    .valve-state {
-      font-family: var(--font-mono); font-size: 9px; color: var(--muted);
-    }
-    .valve.open .valve-state { color: var(--green); }
-
     .pressure-row {
-      display: flex; gap: 10px; align-items: center; margin-bottom: 20px;
+      display: flex; gap: 10px; align-items: center; margin: 8px 0 20px;
     }
-    .pressure-label { font-family: var(--font-mono); font-size: 10px; color: var(--muted); letter-spacing: 0.08em; white-space: nowrap; }
+    .pressure-label { font-family: var(--font-mono); font-size: 10px; color: var(--muted); white-space: nowrap; }
     .pressure-track { flex: 1; height: 4px; background: var(--border); position: relative; }
     .pressure-fill {
       position: absolute; top: 0; left: 0; height: 100%;
@@ -150,24 +96,67 @@
     }
     .pressure-val { font-family: var(--font-mono); font-size: 10px; color: var(--text); min-width: 48px; text-align: right; }
 
-    .submit-row { display: flex; gap: 12px; align-items: center; }
+    .valve-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 12px; margin-bottom: 20px;
+    }
+
+    .valve {
+      border: 1px solid var(--border); background: var(--panel-2);
+      padding: 14px 8px 10px; display: flex; flex-direction: column;
+      align-items: center; gap: 8px; cursor: pointer;
+      transition: border-color 0.2s, background 0.2s; user-select: none;
+    }
+    .valve:hover { border-color: var(--border-hi); }
+    .valve.open { border-color: var(--accent); background: rgba(0,212,255,0.04); }
+
+    .valve-visual { width: 44px; height: 44px; position: relative; }
+    .valve-pipe-h {
+      position: absolute; top: 50%; left: 0; right: 0; height: 8px; margin-top: -4px;
+      background: var(--dim); border-radius: 2px; transition: background 0.3s;
+    }
+    .valve.open .valve-pipe-h { background: rgba(0,212,255,0.3); }
+    .valve-body {
+      position: absolute; top: 50%; left: 50%; width: 16px; height: 16px;
+      margin: -8px 0 0 -8px; background: var(--border); border-radius: 50%;
+      border: 2px solid var(--dim); transition: border-color 0.3s; z-index: 2;
+    }
+    .valve.open .valve-body { border-color: var(--accent); }
+    .valve-stem {
+      position: absolute; top: 0; left: 50%; width: 4px; height: 10px; margin-left: -2px;
+      background: var(--dim); border-radius: 2px; z-index: 1;
+    }
+    .valve-handle {
+      position: absolute; top: 0; left: 50%; width: 14px; height: 4px; margin-left: -7px;
+      background: var(--dim); border-radius: 2px;
+      transition: transform 0.3s, background 0.3s; z-index: 3;
+    }
+    .valve.open .valve-handle { transform: rotate(90deg); background: var(--accent); }
+
+    .valve-id {
+      font-family: var(--font-hud); font-size: 14px; font-weight: 900;
+      color: var(--muted); transition: color 0.3s;
+    }
+    .valve.open .valve-id { color: var(--accent); }
+    .valve-state { font-family: var(--font-mono); font-size: 9px; color: var(--muted); }
+    .valve.open .valve-state { color: var(--green); }
+
+    .submit-row { display: flex; gap: 10px; align-items: center; }
     .submit-btn {
-      font-family: var(--font-hud); font-size: 11px; font-weight: 700;
-      letter-spacing: 0.2em; padding: 12px 24px;
-      border: 1px solid var(--accent); color: var(--accent);
+      font-family: var(--font-hud); font-size: 11px; font-weight: 700; letter-spacing: 0.2em;
+      padding: 11px 22px; border: 1px solid var(--accent); color: var(--accent);
       background: transparent; cursor: pointer; transition: all 0.2s;
     }
     .submit-btn:hover:not(:disabled) { background: rgba(0,212,255,0.08); }
     .submit-btn:disabled { border-color: var(--muted); color: var(--muted); cursor: not-allowed; }
     .reset-btn {
-      font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.15em;
-      padding: 12px 16px; border: 1px solid var(--border); color: var(--muted);
-      background: transparent; cursor: pointer; transition: all 0.2s;
+      font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.15em; padding: 11px 14px;
+      border: 1px solid var(--border); color: var(--muted); background: transparent; cursor: pointer; transition: all 0.2s;
     }
     .reset-btn:hover { border-color: var(--muted); color: var(--text); }
-    .feedback { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; flex: 1; }
-    .feedback.ok   { color: var(--green); }
-    .feedback.fail { color: var(--danger); }
+    .feedback { font-family: var(--font-mono); font-size: 11px; flex: 1; }
+    .feedback.ok     { color: var(--green); }
+    .feedback.fail   { color: var(--danger); }
     .feedback.locked { color: var(--warn); }
 
     .lockout-bar {
@@ -177,26 +166,14 @@
     }
     .lockout-bar.animating { transform: scaleX(1); transition: transform 15s linear; }
 
-    .side-panels { display: flex; flex-direction: column; gap: 16px; }
-
-    .clue-panel {
-      border: 1px solid var(--border); background: var(--panel); padding: 20px 22px;
-      position: relative; opacity: 0; animation: fadeIn 0.6s ease 0.4s forwards;
-    }
-    .clue-title {
-      font-family: var(--font-hud); font-size: 9px; letter-spacing: 0.25em; color: var(--muted);
-      border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 14px;
-    }
-    .clue-text {
-      font-family: var(--font-mono); font-size: 12px; line-height: 1.8; color: var(--text);
-    }
-    .clue-text strong { color: var(--warn); font-weight: normal; }
+    /* ── SIDE ── */
+    .side-panels { display: flex; flex-direction: column; gap: 14px; }
 
     .history-panel {
-      border: 1px solid var(--border); background: var(--panel); padding: 20px 22px;
-      opacity: 0; animation: fadeIn 0.6s ease 0.5s forwards;
+      border: 1px solid var(--border); background: var(--panel); padding: 18px 20px;
+      opacity: 0; animation: fadeIn 0.6s ease 0.4s forwards;
     }
-    .history-title {
+    .panel-title {
       font-family: var(--font-hud); font-size: 9px; letter-spacing: 0.25em; color: var(--muted);
       border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 12px;
     }
@@ -207,18 +184,14 @@
       font-family: var(--font-mono); font-size: 10px;
     }
     .attempt-item:last-child { border-bottom: none; }
-    .attempt-valves { color: var(--text); letter-spacing: 0.05em; }
+    .attempt-valves { color: var(--text); }
     .attempt-result.fail { color: var(--danger); }
     .attempt-result.ok   { color: var(--green); }
     .no-attempts { font-family: var(--font-mono); font-size: 11px; color: var(--dim); }
 
     .hint-panel {
-      border: 1px solid var(--border); background: var(--panel); padding: 20px 22px;
-      opacity: 0; animation: fadeIn 0.6s ease 0.6s forwards;
-    }
-    .hint-title {
-      font-family: var(--font-hud); font-size: 9px; letter-spacing: 0.25em; color: var(--muted);
-      border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 14px;
+      border: 1px solid var(--border); background: var(--panel); padding: 18px 20px;
+      opacity: 0; animation: fadeIn 0.6s ease 0.5s forwards;
     }
     .hint-btn {
       width: 100%; font-family: var(--font-hud); font-size: 10px; letter-spacing: 0.18em;
@@ -227,9 +200,13 @@
     }
     .hint-btn:hover:not(:disabled) { background: rgba(255,170,0,0.06); }
     .hint-btn:disabled { border-color: var(--dim); color: var(--dim); cursor: not-allowed; }
-    .hint-text { font-family: var(--font-mono); font-size: 11px; line-height: 1.8; color: var(--warn); margin-top: 12px; display: none; }
+    .hint-text {
+      font-family: var(--font-mono); font-size: 11px; line-height: 1.8;
+      color: var(--warn); margin-top: 12px; display: none;
+    }
     .hint-text.visible { display: block; }
 
+    /* ── SUCCESS ── */
     .success-overlay {
       position: fixed; inset: 0; background: rgba(6,10,15,0.92); z-index: 300;
       display: flex; align-items: center; justify-content: center;
@@ -238,33 +215,40 @@
     .success-overlay.show { opacity: 1; pointer-events: all; }
     .success-card {
       border: 1px solid var(--green); background: var(--panel);
-      padding: 48px 52px; text-align: center; max-width: 460px; width: 90%; position: relative;
+      padding: 44px 48px; text-align: center; max-width: 440px; width: 90%; position: relative;
     }
     .success-card::before, .success-card::after {
       content: ''; position: absolute; height: 2px; left: 0; right: 0;
       background: linear-gradient(90deg, transparent, var(--green), transparent);
     }
     .success-card::before { top: 0; } .success-card::after { bottom: 0; }
-    .success-icon { font-size: 48px; color: var(--green); margin-bottom: 20px; display: block; }
-    .success-title { font-family: var(--font-hud); font-size: 18px; font-weight: 700; color: #e8f4f8; letter-spacing: 0.1em; margin-bottom: 10px; }
-    .success-sub { font-family: var(--font-mono); font-size: 12px; color: var(--muted); letter-spacing: 0.05em; line-height: 1.8; margin-bottom: 8px; }
-    .fragment-reveal {
-      font-family: var(--font-hud); font-size: 28px; font-weight: 900; color: var(--green);
-      letter-spacing: 0.3em; margin: 20px 0 28px;
-      border: 1px solid rgba(0,255,136,0.3); padding: 14px 24px; display: inline-block;
+    .success-icon { font-size: 40px; color: var(--green); margin-bottom: 16px; display: block; }
+    .success-title {
+      font-family: var(--font-hud); font-size: 17px; font-weight: 700;
+      color: #e8f4f8; letter-spacing: 0.1em; margin-bottom: 8px;
     }
-    .success-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .success-sub {
+      font-family: var(--font-mono); font-size: 11px; color: var(--muted);
+      letter-spacing: 0.05em; line-height: 1.8; margin-bottom: 6px;
+    }
+    .fragment-reveal {
+      font-family: var(--font-hud); font-size: 26px; font-weight: 900; color: var(--green);
+      letter-spacing: 0.3em; margin: 16px 0 24px;
+      border: 1px solid rgba(0,255,136,0.3); padding: 12px 20px; display: inline-block;
+    }
+    .success-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
     .success-btn {
       font-family: var(--font-hud); font-size: 10px; font-weight: 700; letter-spacing: 0.2em;
-      padding: 12px 22px; border: 1px solid var(--accent); color: var(--accent);
+      padding: 11px 20px; border: 1px solid var(--accent); color: var(--accent);
       background: transparent; cursor: pointer; text-decoration: none; transition: all 0.2s;
     }
     .success-btn:hover { background: rgba(0,212,255,0.08); }
     .success-btn.secondary { border-color: var(--border); color: var(--muted); }
     .success-btn.secondary:hover { border-color: var(--muted); color: var(--text); }
     .lore-reveal {
-      margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--border);
-      font-family: var(--font-mono); font-size: 11px; color: var(--muted); line-height: 1.8; text-align: left;
+      margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border);
+      font-family: var(--font-mono); font-size: 11px; color: var(--muted);
+      line-height: 1.8; text-align: left;
     }
     .lore-reveal strong { color: var(--warn); font-weight: normal; }
 
@@ -279,17 +263,16 @@
 <div class="success-overlay" id="success-overlay">
   <div class="success-card">
     <span class="success-icon">✓</span>
-    <div class="success-title">O2 SYSTEMS RESTORED</div>
-    <div class="success-sub">Atmospheric pressure nominal.<br>Fragment A recovered from override console.</div>
+    <div class="success-title">O2 RESTORED</div>
+    <div class="success-sub">Fragment A recovered.</div>
     <div class="fragment-reveal">4471</div>
-    <div class="success-sub" style="font-size:10px">Fragment saved automatically.</div>
     <div class="success-actions">
       <a href="../hub.html" class="success-btn">‹ RETURN TO HUB</a>
       <button class="success-btn secondary" onclick="document.getElementById('success-overlay').classList.remove('show')">VIEW ROOM</button>
     </div>
     <div class="lore-reveal">
-      <strong>// RECOVERED LOG — DR. PETROV — DAY 81</strong><br>
-      "The O2 recyclers are failing faster than projected. Yuen says it's the algae — something in the bio-cultures mutated. I've had to override the pressure sequence manually three times this week. Whatever it is, it's spreading to the water supply too."
+      <strong>// PETROV — DAY 81</strong><br>
+      "Something in the bio-cultures mutated. It's spreading to the water supply. I don't think it's accidental."
     </div>
   </div>
 </div>
@@ -313,12 +296,12 @@
 
   <div class="room-header">
     <div>
-      <div class="room-tag">MODULE A // SECTOR 4 // ATMOSPHERIC CONTROL</div>
-      <div class="room-title">O2 Control Room</div>
+      <div class="room-tag">MODULE A // O2 CONTROL</div>
+      <div class="room-title">Oxygen Control</div>
     </div>
     <div style="text-align:right">
       <div style="font-family:var(--font-mono);font-size:10px;color:var(--muted);letter-spacing:0.1em;margin-bottom:8px">
-        HINTS REMAINING: <span id="hint-count" style="color:var(--warn)">3</span>
+        HINTS: <span id="hint-count" style="color:var(--warn)">3</span>
       </div>
       <div class="badge badge--danger">LIFE SUPPORT FAILING</div>
     </div>
@@ -327,30 +310,22 @@
   <div class="room-body">
     <div>
 
-      <div class="lore-log">
-        <div class="panel-label">WALL-MOUNTED NOTICE — HANDWRITTEN</div>
-        <div class="log-entry">
-          <span class="ts">// ATMOSPHERIC OVERRIDE PANEL — 8-VALVE ARRAY //</span><br>
-          Eight manual pressure valves control O2 flow.<br>
-          <span class="alert">WARNING:</span> Opening incorrect valves risks<br>
-          catastrophic pressure cascade in the main recycler.<br><br>
-          <span class="hi">Maintenance note (Vasquez):</span><br>
-          <em>"Only the prime positions flow."</em><br><br>
-          <span class="ts">— Last calibrated: Stardate 2347.031</span>
+      <div class="wall-notice">
+        <div class="panel-label">WALL NOTICE — VASQUEZ</div>
+        <div class="notice-text">
+          <span class="alert">CAUTION:</span> Do not open all valves — pressure cascade will rupture the recycler.<br>
+          <span class="hi">"Only the prime positions flow."</span>
         </div>
       </div>
 
       <div class="valve-panel" id="valve-panel">
-        <div class="valve-panel-label">ATMOSPHERIC PRESSURE CONTROL — 8-VALVE ARRAY</div>
-
-        <div class="pressure-row" style="margin-top:8px">
-          <div class="pressure-label">SYSTEM PRESSURE</div>
+        <div class="valve-panel-label">8-VALVE PRESSURE ARRAY</div>
+        <div class="pressure-row">
+          <div class="pressure-label">PRESSURE</div>
           <div class="pressure-track"><div class="pressure-fill" id="pressure-fill"></div></div>
           <div class="pressure-val" id="pressure-val">0 kPa</div>
         </div>
-
         <div class="valve-grid" id="valve-grid"></div>
-
         <div class="submit-row">
           <button class="submit-btn" id="submit-btn" onclick="checkSolution()">PRESSURIZE</button>
           <button class="reset-btn" onclick="resetValves()">RESET</button>
@@ -363,27 +338,15 @@
 
     <div class="side-panels">
 
-      <div class="clue-panel">
-        <div class="clue-title">ENGINEER'S REFERENCE</div>
-        <div class="clue-text">
-          Valves are numbered <strong>1 through 8</strong>.<br>
-          Each is either OPEN or CLOSED.<br><br>
-          The maintenance note reads:<br>
-          <strong>"Only the prime positions flow."</strong><br><br>
-          Determine which valve numbers<br>
-          are prime. Open those. Close the rest.
-        </div>
-      </div>
-
       <div class="history-panel">
-        <div class="history-title">ATTEMPT HISTORY</div>
+        <div class="panel-title">ATTEMPT HISTORY</div>
         <ul class="attempt-list" id="attempt-list">
           <li class="no-attempts" id="no-attempts">No attempts yet.</li>
         </ul>
       </div>
 
       <div class="hint-panel">
-        <div class="hint-title">REQUEST HINT</div>
+        <div class="panel-title">HINTS</div>
         <button class="hint-btn" id="hint-btn" onclick="useHint()">USE HINT (3 remaining)</button>
         <div class="hint-text" id="hint-text"></div>
       </div>
@@ -393,21 +356,20 @@
 </main>
 
 <div class="hud-bar">
-  <div class="hud-item"><div class="hud-dot"></div>O2 PRESSURE: <span id="hud-pressure">CRITICAL</span></div>
+  <div class="hud-item"><div class="hud-dot"></div>O2: <span id="hud-pressure">CRITICAL</span></div>
   <div class="hud-item">ATTEMPTS: <span id="hud-attempts">0</span></div>
   <div class="hud-item">STATUS: <span id="hud-status">UNSOLVED</span></div>
 </div>
 
 <script>
-  // Valves 1-8; primes are 2,3,5,7
   const SOLUTION  = [false,true,true,false,true,false,true,false];
   const FRAGMENT  = '4471';
   const LOCKOUT_S = 15;
 
   const hints = [
-    "A prime number is only divisible by 1 and itself. Which numbers between 1 and 8 qualify? Start by eliminating the obvious ones: 1 is not prime. 4, 6, and 8 are even and greater than 2, so they're not prime either.",
-    "The primes between 1 and 8 are 2, 3, 5, and 7. That's four valves to open.",
-    "Open valves 2, 3, 5, and 7. Leave valves 1, 4, 6, and 8 closed."
+    "A prime number is only divisible by 1 and itself. Which numbers between 1 and 8 qualify? Start by eliminating 1 (not prime), and 4, 6, 8 (even, greater than 2).",
+    "The primes between 1 and 8 are 2, 3, 5, and 7. Open exactly those four valves.",
+    "Open valves 2, 3, 5, and 7. Leave 1, 4, 6, and 8 closed."
   ];
 
   let valveState = new Array(8).fill(false);
@@ -416,6 +378,7 @@
   let lockedOut  = false;
   let solved     = false;
 
+  /* ── TIMER ── */
   let totalSeconds = 20 * 60;
   const savedTime  = localStorage.getItem('erebus-time');
   if (savedTime) totalSeconds = parseInt(savedTime, 10);
@@ -429,7 +392,7 @@
     if (totalSeconds <= 60) timerEl.classList.add('critical');
     if (totalSeconds <= 0) {
       clearInterval(timerInterval);
-      document.body.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:'Orbitron',sans-serif;font-size:28px;color:#ff3b3b;letter-spacing:0.15em;text-align:center;flex-direction:column;gap:16px;background:#060a0f;"><div>LIFE SUPPORT FAILURE</div><div style="font-size:12px;color:#4a6a7a;font-family:'Share Tech Mono',monospace;letter-spacing:0.2em">MISSION FAILED — <a href="../hub.html" style="color:#00d4ff">RETURN TO HUB</a></div></div>`;
+      window.location.href = '../gameover.html';
     }
   }, 1000);
 
@@ -450,7 +413,6 @@
           <div class="valve-body"></div>
         </div>
         <div class="valve-id">${i+1}</div>
-        <div class="valve-label">VALVE ${i+1}</div>
         <div class="valve-state">${open ? 'OPEN' : 'CLOSED'}</div>
       `;
       grid.appendChild(div);
@@ -476,34 +438,32 @@
   }
 
   function updatePressure() {
-    const openCount = valveState.filter(Boolean).length;
-    const target    = 4; // four primes
-    const pct       = Math.round((openCount / target) * 100);
-    const kpa       = Math.round(openCount * 20);
-    const fill      = document.getElementById('pressure-fill');
-    const val       = document.getElementById('pressure-val');
-    const hud       = document.getElementById('hud-pressure');
+    const open   = valveState.filter(Boolean).length;
+    const target = 4;
+    const pct    = Math.round((open / target) * 100);
+    const kpa    = Math.round(open * 20);
+    const fill   = document.getElementById('pressure-fill');
+    const val    = document.getElementById('pressure-val');
+    const hud    = document.getElementById('hud-pressure');
     fill.style.width      = Math.min(pct, 100) + '%';
-    fill.style.background = openCount > target ? 'var(--danger)' : openCount === target ? 'var(--green)' : 'var(--accent)';
+    fill.style.background = open > target ? 'var(--danger)' : open === target ? 'var(--green)' : 'var(--accent)';
     val.textContent       = `${kpa} kPa`;
-    val.style.color       = openCount > target ? 'var(--danger)' : openCount === target ? 'var(--green)' : 'var(--text)';
-    hud.textContent       = openCount === 0 ? 'CRITICAL' : openCount < target ? 'LOW' : openCount === target ? 'NOMINAL' : 'OVERPRESSURE';
-    hud.style.color       = openCount > target ? 'var(--danger)' : openCount === target ? 'var(--green)' : 'var(--warn)';
+    val.style.color       = open > target ? 'var(--danger)' : open === target ? 'var(--green)' : 'var(--text)';
+    hud.textContent       = open === 0 ? 'CRITICAL' : open < target ? 'LOW' : open === target ? 'NOMINAL' : 'OVERPRESSURE';
+    hud.style.color       = open > target ? 'var(--danger)' : open === target ? 'var(--green)' : 'var(--warn)';
   }
 
   function checkSolution() {
     if (lockedOut || solved) return;
     const correct  = SOLUTION.every((s, i) => s === valveState[i]);
     const openNums = valveState.map((v,i) => v ? i+1 : null).filter(Boolean);
-    const label    = openNums.length ? openNums.join(', ') : 'none';
-    attempts.push({ valves: label, correct });
+    attempts.push({ valves: openNums.join(', ') || 'none', correct });
     updateHistory();
     document.getElementById('hud-attempts').textContent = attempts.length;
-    if (correct) {
-      handleSolve();
-    } else {
+    if (correct) { handleSolve(); }
+    else {
       triggerLockout();
-      setFeedback('INCORRECT — pressure cascade risk. System locked for 15s.', 'fail');
+      setFeedback('Incorrect. System locked 15s.', 'fail');
     }
   }
 
@@ -513,7 +473,7 @@
     const state = JSON.parse(localStorage.getItem('erebus') || '{}');
     state.A = FRAGMENT;
     localStorage.setItem('erebus', JSON.stringify(state));
-    setFeedback('CORRECT — O2 systems nominal. Fragment A recovered.', 'ok');
+    setFeedback('O2 nominal. Fragment A recovered.', 'ok');
     document.getElementById('hud-status').textContent = 'SOLVED';
     document.getElementById('hud-status').style.color = 'var(--green)';
     setTimeout(() => document.getElementById('success-overlay').classList.add('show'), 800);
@@ -529,24 +489,24 @@
       lockedOut = false;
       document.getElementById('submit-btn').disabled = false;
       bar.classList.remove('animating');
-      setFeedback('System unlocked. Try again.', 'locked');
+      setFeedback('Unlocked. Try again.', 'locked');
     }, LOCKOUT_S * 1000);
   }
 
   function setFeedback(msg, type) {
     const el = document.getElementById('feedback');
     el.textContent = msg;
-    el.className = `feedback${type ? ' ' + type : ''}`;
+    el.className = `feedback${type ? ' '+type : ''}`;
   }
 
   function updateHistory() {
     const list = document.getElementById('attempt-list');
     document.getElementById('no-attempts')?.remove();
     list.innerHTML = '';
-    [...attempts].reverse().slice(0, 6).forEach(a => {
+    [...attempts].reverse().slice(0,6).forEach(a => {
       const li = document.createElement('li');
       li.className = 'attempt-item';
-      li.innerHTML = `<span class="attempt-valves">Valves: ${a.valves}</span><span class="attempt-result ${a.correct ? 'ok' : 'fail'}">${a.correct ? '✓ CORRECT' : '✗ WRONG'}</span>`;
+      li.innerHTML = `<span class="attempt-valves">Valves: ${a.valves}</span><span class="attempt-result ${a.correct?'ok':'fail'}">${a.correct?'✓':'✗'}</span>`;
       list.appendChild(li);
     });
   }
@@ -571,7 +531,7 @@
       solved = true;
       valveState = [...SOLUTION];
       buildGrid();
-      setFeedback('O2 systems already restored. Fragment A: ' + FRAGMENT, 'ok');
+      setFeedback('Already restored. Fragment A: ' + FRAGMENT, 'ok');
       document.getElementById('hud-status').textContent = 'SOLVED';
       document.getElementById('hud-status').style.color = 'var(--green)';
       document.getElementById('submit-btn').disabled = true;
