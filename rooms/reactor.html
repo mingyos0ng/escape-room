@@ -51,35 +51,34 @@
     }
 
     .room-body {
-      display: grid; grid-template-columns: 1fr 290px;
+      display: grid; grid-template-columns: 1fr 260px;
       gap: 20px; align-items: start;
     }
     @media (max-width: 720px) { .room-body { grid-template-columns: 1fr; } }
 
-    /* ── LORE LOGS ── */
-    .lore-log {
+    /* ── WALL NOTICE ── */
+    .wall-notice {
       border: 1px solid var(--border); background: var(--panel);
-      padding: 20px 22px; margin-bottom: 16px; position: relative;
+      padding: 18px 20px; margin-bottom: 16px; position: relative;
+      opacity: 0; animation: fadeIn 0.6s ease 0.2s forwards;
     }
-    .lore-log::after {
+    .wall-notice::after {
       content: ''; position: absolute; top: 0; left: 0;
       width: 3px; height: 100%; background: var(--orange);
     }
-    .lore-log.anim-1 { opacity: 0; animation: fadeIn 0.6s ease 0.2s forwards; }
-    .lore-log.anim-2 { opacity: 0; animation: fadeIn 0.6s ease 0.35s forwards; }
-    .log-entry {
+    .notice-text {
       font-family: var(--font-mono); font-size: 12px; line-height: 1.9; color: var(--text);
     }
-    .log-entry .ts    { color: var(--muted); }
-    .log-entry .hi    { color: var(--orange); }
-    .log-entry .alert { color: var(--danger); }
-    .log-entry .good  { color: var(--green); }
+    .notice-text .hi    { color: var(--orange); }
+    .notice-text .ts    { color: var(--muted); }
+    .notice-text .alert { color: var(--danger); }
+    .notice-text .good  { color: var(--green); }
 
     /* ── PIPE PANEL ── */
     .pipe-panel {
       border: 1px solid var(--border); background: var(--panel);
       padding: 24px; position: relative;
-      opacity: 0; animation: fadeIn 0.6s ease 0.5s forwards;
+      opacity: 0; animation: fadeIn 0.6s ease 0.3s forwards;
     }
     .pipe-panel-label {
       position: absolute; top: -9px; left: 20px;
@@ -91,24 +90,24 @@
 
     .pipe-grid {
       display: grid;
-      grid-template-columns: repeat(6, 56px);
-      grid-template-rows: repeat(6, 56px);
+      grid-template-columns: repeat(6, 54px);
+      grid-template-rows: repeat(6, 54px);
       gap: 3px;
     }
 
     .tile {
-      width: 56px; height: 56px; background: var(--panel-2);
+      width: 54px; height: 54px; background: var(--panel-2);
       border: 1px solid var(--border); cursor: pointer; position: relative;
       transition: border-color 0.2s; user-select: none;
     }
     .tile:hover:not(.fixed) { border-color: var(--border-hi); }
     .tile.fixed  { cursor: default; background: rgba(10,18,26,0.8); }
     .tile.lit    { border-color: rgba(255,107,0,0.5); background: rgba(255,107,0,0.04); }
-    .tile.dead   { border-color: rgba(255,59,59,0.3); } /* dead-end distractor */
+    .tile.dead   { border-color: rgba(255,59,59,0.3); }
 
     .tile svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
     .pipe-seg {
-      stroke: var(--dim); stroke-width: 9; stroke-linecap: square; fill: none; transition: stroke 0.25s;
+      stroke: var(--dim); stroke-width: 8; stroke-linecap: square; fill: none; transition: stroke 0.25s;
     }
     .tile.lit    .pipe-seg { stroke: var(--orange); }
     .tile.source .pipe-seg { stroke: var(--orange); }
@@ -120,9 +119,9 @@
     .tile.fixed.target .pipe-seg { stroke: var(--green); }
 
     .tile-label {
-      position: absolute; bottom: 2px; right: 4px;
+      position: absolute; bottom: 2px; right: 3px;
       font-family: var(--font-hud); font-size: 7px; color: var(--dim);
-      pointer-events: none; letter-spacing: 0.05em;
+      pointer-events: none;
     }
     .tile.source .tile-label { color: var(--orange); }
     .tile.target .tile-label { color: var(--green); }
@@ -130,27 +129,25 @@
 
     .tile.source::before, .tile.target::before {
       content: ''; position: absolute; top: 0; left: 0;
-      width: 8px; height: 8px;
+      width: 7px; height: 7px;
       border-top: 2px solid var(--orange); border-left: 2px solid var(--orange);
     }
     .tile.target::before { border-color: var(--green); }
 
     .panel-footer { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
     .submit-btn {
-      font-family: var(--font-hud); font-size: 11px; font-weight: 700;
-      letter-spacing: 0.2em; padding: 12px 24px;
-      border: 1px solid var(--orange); color: var(--orange);
+      font-family: var(--font-hud); font-size: 11px; font-weight: 700; letter-spacing: 0.2em;
+      padding: 11px 22px; border: 1px solid var(--orange); color: var(--orange);
       background: transparent; cursor: pointer; transition: all 0.2s;
     }
     .submit-btn:hover:not(:disabled) { background: rgba(255,107,0,0.08); }
     .submit-btn:disabled { border-color: var(--muted); color: var(--muted); cursor: not-allowed; }
     .reset-btn {
-      font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.15em;
-      padding: 12px 16px; border: 1px solid var(--border); color: var(--muted);
-      background: transparent; cursor: pointer; transition: all 0.2s;
+      font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.15em; padding: 11px 14px;
+      border: 1px solid var(--border); color: var(--muted); background: transparent; cursor: pointer; transition: all 0.2s;
     }
     .reset-btn:hover { border-color: var(--muted); color: var(--text); }
-    .feedback { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; flex: 1; }
+    .feedback { font-family: var(--font-mono); font-size: 11px; flex: 1; }
     .feedback.ok   { color: var(--green); }
     .feedback.fail { color: var(--danger); }
 
@@ -162,52 +159,30 @@
     .lockout-bar.animating { transform: scaleX(1); transition: transform 15s linear; }
 
     /* ── SIDE ── */
-    .side-panels { display: flex; flex-direction: column; gap: 16px; }
+    .side-panels { display: flex; flex-direction: column; gap: 14px; }
 
     .info-panel {
-      border: 1px solid var(--border); background: var(--panel); padding: 20px 22px;
+      border: 1px solid var(--border); background: var(--panel); padding: 18px 20px;
       opacity: 0; animation: fadeIn 0.6s ease 0.4s forwards;
     }
     .panel-title {
       font-family: var(--font-hud); font-size: 9px; letter-spacing: 0.25em; color: var(--muted);
-      border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 14px;
+      border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 12px;
     }
     .info-text { font-family: var(--font-mono); font-size: 11px; line-height: 1.85; color: var(--text); }
     .info-text strong { color: var(--orange); font-weight: normal; }
 
     .legend-row {
       display: flex; align-items: center; gap: 10px;
-      padding: 6px 0; border-bottom: 1px solid rgba(26,46,61,0.4);
+      padding: 5px 0; border-bottom: 1px solid rgba(26,46,61,0.4);
       font-family: var(--font-mono); font-size: 10px; color: var(--muted);
     }
     .legend-row:last-child { border-bottom: none; }
-    .legend-swatch { width: 28px; height: 8px; border-radius: 2px; flex-shrink: 0; }
-
-    /* side lore log */
-    .side-log {
-      border: 1px solid var(--border); background: var(--panel); padding: 18px 20px;
-      position: relative; opacity: 0; animation: fadeIn 0.6s ease 0.55s forwards;
-    }
-    .side-log::after {
-      content: ''; position: absolute; top: 0; left: 0;
-      width: 3px; height: 100%; background: var(--danger);
-    }
-    .side-log-label {
-      font-family: var(--font-hud); font-size: 9px; letter-spacing: 0.2em;
-      color: var(--muted); margin-bottom: 10px;
-    }
-    .side-log-text {
-      font-family: var(--font-mono); font-size: 11px; line-height: 1.8; color: var(--muted);
-    }
-    .side-log-text strong { color: var(--warn); font-weight: normal; }
+    .legend-swatch { width: 24px; height: 6px; border-radius: 2px; flex-shrink: 0; }
 
     .hint-panel {
-      border: 1px solid var(--border); background: var(--panel); padding: 20px 22px;
-      opacity: 0; animation: fadeIn 0.6s ease 0.6s forwards;
-    }
-    .hint-title {
-      font-family: var(--font-hud); font-size: 9px; letter-spacing: 0.25em; color: var(--muted);
-      border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 14px;
+      border: 1px solid var(--border); background: var(--panel); padding: 18px 20px;
+      opacity: 0; animation: fadeIn 0.6s ease 0.5s forwards;
     }
     .hint-btn {
       width: 100%; font-family: var(--font-hud); font-size: 10px; letter-spacing: 0.18em;
@@ -228,32 +203,32 @@
     .success-overlay.show { opacity: 1; pointer-events: all; }
     .success-card {
       border: 1px solid var(--green); background: var(--panel);
-      padding: 48px 52px; text-align: center; max-width: 480px; width: 90%; position: relative;
+      padding: 44px 48px; text-align: center; max-width: 440px; width: 90%; position: relative;
     }
     .success-card::before, .success-card::after {
       content: ''; position: absolute; height: 2px; left: 0; right: 0;
       background: linear-gradient(90deg, transparent, var(--green), transparent);
     }
     .success-card::before { top: 0; } .success-card::after { bottom: 0; }
-    .success-icon { font-size: 48px; color: var(--green); margin-bottom: 20px; display: block; }
-    .success-title { font-family: var(--font-hud); font-size: 18px; font-weight: 700; color: #e8f4f8; letter-spacing: 0.1em; margin-bottom: 10px; }
-    .success-sub { font-family: var(--font-mono); font-size: 12px; color: var(--muted); letter-spacing: 0.05em; line-height: 1.8; margin-bottom: 8px; }
+    .success-icon { font-size: 40px; color: var(--green); margin-bottom: 16px; display: block; }
+    .success-title { font-family: var(--font-hud); font-size: 17px; font-weight: 700; color: #e8f4f8; letter-spacing: 0.1em; margin-bottom: 8px; }
+    .success-sub { font-family: var(--font-mono); font-size: 11px; color: var(--muted); line-height: 1.8; margin-bottom: 6px; }
     .fragment-reveal {
-      font-family: var(--font-hud); font-size: 28px; font-weight: 900; color: var(--green);
-      letter-spacing: 0.3em; margin: 20px 0 28px;
-      border: 1px solid rgba(0,255,136,0.3); padding: 14px 24px; display: inline-block;
+      font-family: var(--font-hud); font-size: 26px; font-weight: 900; color: var(--green);
+      letter-spacing: 0.3em; margin: 16px 0 24px;
+      border: 1px solid rgba(0,255,136,0.3); padding: 12px 20px; display: inline-block;
     }
-    .success-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .success-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
     .success-btn {
       font-family: var(--font-hud); font-size: 10px; font-weight: 700; letter-spacing: 0.2em;
-      padding: 12px 22px; border: 1px solid var(--accent); color: var(--accent);
+      padding: 11px 20px; border: 1px solid var(--accent); color: var(--accent);
       background: transparent; cursor: pointer; text-decoration: none; transition: all 0.2s;
     }
     .success-btn:hover { background: rgba(0,212,255,0.08); }
     .success-btn.secondary { border-color: var(--border); color: var(--muted); }
     .success-btn.secondary:hover { border-color: var(--muted); color: var(--text); }
     .lore-reveal {
-      margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--border);
+      margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border);
       font-family: var(--font-mono); font-size: 11px; color: var(--muted); line-height: 1.8; text-align: left;
     }
     .lore-reveal strong { color: var(--warn); font-weight: normal; }
@@ -270,18 +245,15 @@
   <div class="success-card">
     <span class="success-icon">✓</span>
     <div class="success-title">REACTOR ONLINE</div>
-    <div class="success-sub">Power routed to main grid.<br>Fragment B recovered from reactor console.</div>
+    <div class="success-sub">Fragment B recovered.</div>
     <div class="fragment-reveal">8823</div>
-    <div class="success-sub" style="font-size:10px">Fragment saved automatically.</div>
     <div class="success-actions">
       <a href="../hub.html" class="success-btn">‹ RETURN TO HUB</a>
       <button class="success-btn secondary" onclick="document.getElementById('success-overlay').classList.remove('show')">VIEW ROOM</button>
     </div>
     <div class="lore-reveal">
-      <strong>// VASQUEZ MAINTENANCE LOG — DAY 88</strong><br>
-      "Reactor went into emergency shutdown at 03:00. No fault in the core — someone manually rerouted the conduits to isolate Lab 7 from the grid. I've re-checked three times. This wasn't an accident or a system fault. Someone did this deliberately. Petrov won't answer my messages. I'm filing an incident report."<br><br>
-      <strong>// AUTOMATED INCIDENT REPORT — DAY 88 — STATUS: SUPPRESSED</strong><br>
-      "Filed by: Vasquez, E. Reviewed by: Station Commander Okafor. Disposition: <strong>No action required. Do not escalate.</strong>"
+      <strong>// VASQUEZ — DAY 88</strong><br>
+      "Someone rerouted the conduits to isolate Lab 7. Deliberately. Petrov won't answer. My incident report was suppressed by Okafor."
     </div>
   </div>
 </div>
@@ -305,12 +277,12 @@
 
   <div class="room-header">
     <div>
-      <div class="room-tag">MODULE B // SECTOR 6 // POWER SYSTEMS</div>
+      <div class="room-tag">MODULE B // REACTOR BAY</div>
       <div class="room-title">Reactor Core</div>
     </div>
     <div style="text-align:right">
       <div style="font-family:var(--font-mono);font-size:10px;color:var(--muted);letter-spacing:0.1em;margin-bottom:8px">
-        HINTS REMAINING: <span id="hint-count" style="color:var(--warn)">3</span>
+        HINTS: <span id="hint-count" style="color:var(--warn)">3</span>
       </div>
       <div class="badge badge--danger">REACTOR OFFLINE</div>
     </div>
@@ -319,31 +291,16 @@
   <div class="room-body">
     <div>
 
-      <div class="lore-log anim-1">
-        <div class="panel-label">SCHEMATIC PLACARD — REACTOR CONTROL PANEL</div>
-        <div class="log-entry">
-          <span class="ts">// POWER ROUTING SYSTEM — EMERGENCY MANUAL OVERRIDE //</span><br>
-          Reactor core is isolated. Energy must flow from the<br>
-          <span class="hi">CORE [top-left]</span> to the <span class="hi">CONDUIT [bottom-right]</span>.<br><br>
-          Click tiles to <span class="alert">rotate pipe segments</span> until a continuous<br>
-          path connects core to conduit. Then hit ENERGIZE.<br><br>
-          <span class="ts">// Caution: FIXED tiles cannot be rotated.<br>// One conduit segment has been deliberately severed — route around it.</span>
-        </div>
-      </div>
-
-      <div class="lore-log anim-2">
-        <div class="panel-label">STICKY NOTE — TAPED TO CONSOLE</div>
-        <div class="log-entry">
-          <span class="ts">// HANDWRITTEN — VASQUEZ //</span><br>
-          "If the grid goes down again — <span class="good">don't touch the top-right section.</span><br>
-          Someone welded the bypass shut. You'll have to<br>
-          route through the <span class="hi">middle columns</span> to reach the conduit.<br>
-          I tried to report it. Nobody wants to hear it."
+      <div class="wall-notice">
+        <div class="panel-label">STICKY NOTE — VASQUEZ</div>
+        <div class="notice-text">
+          <span class="good">Don't route through the top-right</span> — bypass is welded shut.<br>
+          Go through the <span class="hi">middle columns</span> to reach the conduit.
         </div>
       </div>
 
       <div class="pipe-panel" id="pipe-panel">
-        <div class="pipe-panel-label">POWER CONDUIT ROUTING GRID — 6×6</div>
+        <div class="pipe-panel-label">POWER CONDUIT ROUTING — 6×6</div>
         <div class="grid-wrap">
           <div class="pipe-grid" id="pipe-grid"></div>
         </div>
@@ -360,30 +317,22 @@
     <div class="side-panels">
 
       <div class="info-panel">
-        <div class="panel-title">HOW TO PLAY</div>
+        <div class="panel-title">LEGEND</div>
         <div class="info-text">
-          <strong>Click</strong> any non-fixed tile to rotate it 90°.<br><br>
-          Connect <strong>CORE</strong> (top-left) to <strong>CONDUIT</strong> (bottom-right) with an unbroken pipe path.<br><br>
-          <strong>Fixed tiles</strong> cannot rotate — work around them. One fixed section is a <strong>dead end</strong>; don't waste time routing through it.
+          <strong>Click</strong> a tile to rotate it.<br>
+          Connect <strong>CORE</strong> → <strong>CONDUIT</strong>.<br>
+          Fixed tiles cannot rotate.
         </div>
-        <div style="margin-top:14px">
+        <div style="margin-top:12px">
           <div class="legend-row"><div class="legend-swatch" style="background:var(--orange)"></div>Active path</div>
           <div class="legend-row"><div class="legend-swatch" style="background:var(--green)"></div>Conduit reached</div>
-          <div class="legend-row"><div class="legend-swatch" style="background:var(--dim)"></div>Inactive pipe</div>
-          <div class="legend-row"><div class="legend-swatch" style="border:1px solid var(--danger);background:rgba(255,59,59,0.05)"></div>Fixed / welded tile</div>
-        </div>
-      </div>
-
-      <div class="side-log">
-        <div class="side-log-label">INCIDENT REPORT FRAGMENT</div>
-        <div class="side-log-text">
-          "...conduit rerouting in Sector 6 appears intentional. Power to <strong>Lab 7 isolated</strong> from main grid on Day 87. Emergency override bypass in grid quadrant C2 has been <strong>physically disabled</strong> — requires welding equipment to restore..."<br><br>
-          <strong>// Filed: Vasquez. Suppressed: Okafor.</strong>
+          <div class="legend-row"><div class="legend-swatch" style="background:var(--dim)"></div>Inactive</div>
+          <div class="legend-row"><div class="legend-swatch" style="border:1px solid var(--danger);background:rgba(255,59,59,0.05)"></div>Fixed tile</div>
         </div>
       </div>
 
       <div class="hint-panel">
-        <div class="panel-title">REQUEST HINT</div>
+        <div class="panel-title">HINTS</div>
         <button class="hint-btn" id="hint-btn" onclick="useHint()">USE HINT (3 remaining)</button>
         <div class="hint-text" id="hint-text"></div>
       </div>
@@ -399,14 +348,6 @@
 </div>
 
 <script>
-  /* ══════════════════════════════════════
-     PIPE TYPES
-     Connections: [N, E, S, W]
-     I = straight (2 rotations)
-     L = corner   (4 rotations)
-     T = T-shape  (4 rotations)
-     X = cross    (1 rotation)
-  ══════════════════════════════════════ */
   const PIPE_CONNECTIONS = {
     I: [[0,1,0,1],[1,0,1,0]],
     L: [[1,1,0,0],[0,1,1,0],[0,0,1,1],[1,0,0,1]],
@@ -414,69 +355,49 @@
     X: [[1,1,1,1]],
   };
 
-  /* 6×6 grid — 36 tiles
-     Solution path (one valid route):
-     (0,0)→(0,1)→(0,2)→(1,2)→(2,2)→(2,3)→(3,3)→(3,4)→(4,4)→(4,5)→(5,5)
-     Dead-end distractor: fixed T at (1,5) facing into top-right corner — looks connected but isn't on any valid path
-     Fixed tiles at: 0 (source), 35 (target), 6 (row1col0 I-vert), 11 (row1col5 T dead-end), 18 (row3col0 L), 29 (row4col5 I-vert)
-  */
   const GRID_DEF = [
-    // row 0
-    { type:'L', rot:1, fixed:true  }, // 0,0  SOURCE connects E,S
-    { type:'I', rot:1, fixed:false },  // 0,1
-    { type:'L', rot:2, fixed:false },  // 0,2
-    { type:'I', rot:1, fixed:false },  // 0,3
-    { type:'L', rot:3, fixed:false },  // 0,4
-    { type:'L', rot:2, fixed:false },  // 0,5
-    // row 1
-    { type:'I', rot:0, fixed:true  }, // 1,0  FIXED vertical — wall pipe
-    { type:'L', rot:0, fixed:false },  // 1,1
-    { type:'T', rot:3, fixed:false },  // 1,2
-    { type:'I', rot:1, fixed:false },  // 1,3
-    { type:'L', rot:0, fixed:false },  // 1,4
-    { type:'T', rot:1, fixed:true  }, // 1,5  FIXED dead-end distractor — open N,E,S but top-right corner goes nowhere
-    // row 2
-    { type:'L', rot:1, fixed:false },  // 2,0
-    { type:'I', rot:0, fixed:false },  // 2,1
-    { type:'T', rot:2, fixed:false },  // 2,2
-    { type:'L', rot:1, fixed:false },  // 2,3
-    { type:'I', rot:0, fixed:false },  // 2,4
-    { type:'L', rot:3, fixed:false },  // 2,5
-    // row 3
-    { type:'L', rot:0, fixed:true  }, // 3,0  FIXED corner — open N,E
-    { type:'I', rot:1, fixed:false },  // 3,1
-    { type:'L', rot:3, fixed:false },  // 3,2
-    { type:'T', rot:0, fixed:false },  // 3,3
-    { type:'L', rot:2, fixed:false },  // 3,4
-    { type:'I', rot:0, fixed:false },  // 3,5
-    // row 4
-    { type:'I', rot:0, fixed:false },  // 4,0
-    { type:'L', rot:2, fixed:false },  // 4,1
-    { type:'I', rot:1, fixed:false },  // 4,2
-    { type:'L', rot:3, fixed:false },  // 4,3
-    { type:'T', rot:2, fixed:false },  // 4,4
-    { type:'I', rot:0, fixed:true  }, // 4,5  FIXED vertical pipe
-    // row 5
-    { type:'L', rot:1, fixed:false },  // 5,0
-    { type:'I', rot:1, fixed:false },  // 5,1
-    { type:'L', rot:0, fixed:false },  // 5,2
-    { type:'I', rot:1, fixed:false },  // 5,3
-    { type:'L', rot:1, fixed:false },  // 5,4
-    { type:'L', rot:3, fixed:true  }, // 5,5  TARGET connects N,W
+    { type:'L', rot:1, fixed:true  },
+    { type:'I', rot:1, fixed:false },
+    { type:'L', rot:2, fixed:false },
+    { type:'I', rot:1, fixed:false },
+    { type:'L', rot:3, fixed:false },
+    { type:'L', rot:2, fixed:false },
+    { type:'I', rot:0, fixed:true  },
+    { type:'L', rot:0, fixed:false },
+    { type:'T', rot:3, fixed:false },
+    { type:'I', rot:1, fixed:false },
+    { type:'L', rot:0, fixed:false },
+    { type:'T', rot:1, fixed:true  },
+    { type:'L', rot:1, fixed:false },
+    { type:'I', rot:0, fixed:false },
+    { type:'T', rot:2, fixed:false },
+    { type:'L', rot:1, fixed:false },
+    { type:'I', rot:0, fixed:false },
+    { type:'L', rot:3, fixed:false },
+    { type:'L', rot:0, fixed:true  },
+    { type:'I', rot:1, fixed:false },
+    { type:'L', rot:3, fixed:false },
+    { type:'T', rot:0, fixed:false },
+    { type:'L', rot:2, fixed:false },
+    { type:'I', rot:0, fixed:false },
+    { type:'I', rot:0, fixed:false },
+    { type:'L', rot:2, fixed:false },
+    { type:'I', rot:1, fixed:false },
+    { type:'L', rot:3, fixed:false },
+    { type:'T', rot:2, fixed:false },
+    { type:'I', rot:0, fixed:true  },
+    { type:'L', rot:1, fixed:false },
+    { type:'I', rot:1, fixed:false },
+    { type:'L', rot:0, fixed:false },
+    { type:'I', rot:1, fixed:false },
+    { type:'L', rot:1, fixed:false },
+    { type:'L', rot:3, fixed:true  },
   ];
 
-  const SOLUTION_ROTS = [
-    1,1,2,1,3,2,
-    0,0,3,1,0,1,
-    1,0,2,1,0,3,
-    0,1,3,0,2,0,
-    0,2,1,3,2,0,
-    1,1,0,1,1,3,
-  ];
-
-  const DEAD_END_IDX = 11; // tile (1,5) — fixed T distractor
-  const FRAGMENT     = '8823';
-  const GRID_SIZE    = 6;
+  const SOLUTION_ROTS = [1,1,2,1,3,2,0,0,3,1,0,1,1,0,2,1,0,3,0,1,3,0,2,0,0,2,1,3,2,0,1,1,0,1,1,3];
+  const DEAD_END_IDX  = 11;
+  const FRAGMENT      = '8823';
+  const GRID_SIZE     = 6;
 
   let tileRots  = GRID_DEF.map(t => t.rot);
   let solved    = false;
@@ -484,9 +405,9 @@
   let hintsLeft = 3;
 
   const hints = [
-    "Fixed tiles (darker border) cannot be rotated. Notice the fixed tile in the top-right area — it's a dead end. Vasquez's note says to route through the middle columns instead.",
-    "Trace a path from top-left downward through column 2, then across rows 3-4, then down to the bottom-right. The fixed tiles in column 0 and row 4 are part of the wall, not the path.",
-    "One valid route: go right along row 0 to column 2, then down through column 2 to row 3, across to column 4, then down to row 5, and right to the target. Rotate tiles to align their openings along this path."
+    "Fixed tiles (darker) can't rotate. The top-right fixed tile is a dead end — don't route through it. Work through the middle of the grid.",
+    "Trace a path: right along row 0 to column 2, down through column 2, across to column 4, then down to the bottom-right target.",
+    "One valid route: (0,0)→(0,1)→(0,2)→down to row 3→across to (3,4)→down to (5,4)→(5,5). Rotate tiles to align openings along this path."
   ];
 
   /* ── TIMER ── */
@@ -503,27 +424,25 @@
     if (totalSeconds <= 60) timerEl.classList.add('critical');
     if (totalSeconds <= 0) {
       clearInterval(timerInterval);
-      document.body.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:'Orbitron',sans-serif;font-size:28px;color:#ff3b3b;letter-spacing:0.15em;text-align:center;flex-direction:column;gap:16px;background:#060a0f;"><div>LIFE SUPPORT FAILURE</div><div style="font-size:12px;color:#4a6a7a;font-family:'Share Tech Mono',monospace;letter-spacing:0.2em">MISSION FAILED — <a href="../hub.html" style="color:#00d4ff">RETURN TO HUB</a></div></div>`;
+      window.location.href = '../gameover.html';
     }
   }, 1000);
 
   function getConns(idx) {
     const { type } = GRID_DEF[idx];
     const rot = tileRots[idx];
-    const variants = PIPE_CONNECTIONS[type];
-    return variants[rot % variants.length];
+    return PIPE_CONNECTIONS[type][rot % PIPE_CONNECTIONS[type].length];
   }
 
   function pipeSVG(conns, isDeadEnd) {
-    const cx = 28, cy = 28;
-    let paths = '';
-    if (conns[0]) paths += `<line class="pipe-seg" x1="${cx}" y1="${cy}" x2="${cx}" y2="0"/>`;
-    if (conns[1]) paths += `<line class="pipe-seg" x1="${cx}" y1="${cy}" x2="56" y2="${cy}"/>`;
-    if (conns[2]) paths += `<line class="pipe-seg" x1="${cx}" y1="${cy}" x2="${cx}" y2="56"/>`;
-    if (conns[3]) paths += `<line class="pipe-seg" x1="${cx}" y1="${cy}" x2="0" y2="${cy}"/>`;
-    const dotColor = isDeadEnd ? 'var(--danger)' : 'var(--dim)';
-    paths += `<circle cx="${cx}" cy="${cy}" r="4" fill="${dotColor}" class="pipe-center"/>`;
-    return `<svg viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">${paths}</svg>`;
+    const cx = 27, cy = 27;
+    let p = '';
+    if (conns[0]) p += `<line class="pipe-seg" x1="${cx}" y1="${cy}" x2="${cx}" y2="0"/>`;
+    if (conns[1]) p += `<line class="pipe-seg" x1="${cx}" y1="${cy}" x2="54" y2="${cy}"/>`;
+    if (conns[2]) p += `<line class="pipe-seg" x1="${cx}" y1="${cy}" x2="${cx}" y2="54"/>`;
+    if (conns[3]) p += `<line class="pipe-seg" x1="${cx}" y1="${cy}" x2="0" y2="${cy}"/>`;
+    p += `<circle cx="${cx}" cy="${cy}" r="4" fill="${isDeadEnd?'var(--danger)':'var(--dim)'}" class="pipe-center"/>`;
+    return `<svg viewBox="0 0 54 54" xmlns="http://www.w3.org/2000/svg">${p}</svg>`;
   }
 
   function buildGrid() {
@@ -552,12 +471,10 @@
   function rotateTile(idx) {
     if (lockedOut || solved) return;
     const { type } = GRID_DEF[idx];
-    const variants = PIPE_CONNECTIONS[type];
-    tileRots[idx] = (tileRots[idx] + 1) % variants.length;
-    const tile = document.getElementById(`tile-${idx}`);
-    const isDeadEnd = idx === DEAD_END_IDX;
-    const label = idx === 0 ? 'CORE' : idx === 35 ? 'CONDUIT' : GRID_DEF[idx].fixed ? 'FIXED' : '';
-    tile.innerHTML = pipeSVG(getConns(idx), isDeadEnd) + (label ? `<div class="tile-label">${label}</div>` : '');
+    tileRots[idx] = (tileRots[idx] + 1) % PIPE_CONNECTIONS[type].length;
+    const tile    = document.getElementById(`tile-${idx}`);
+    const label   = idx === 0 ? 'CORE' : idx === 35 ? 'CONDUIT' : GRID_DEF[idx].fixed ? 'FIXED' : '';
+    tile.innerHTML = pipeSVG(getConns(idx), idx === DEAD_END_IDX) + (label ? `<div class="tile-label">${label}</div>` : '');
     tracePath();
     setFeedback('', '');
   }
@@ -567,53 +484,32 @@
     const queue = [0];
     lit.add(0);
     while (queue.length) {
-      const idx = queue.shift();
-      const row = Math.floor(idx / GRID_SIZE);
-      const col = idx % GRID_SIZE;
+      const idx   = queue.shift();
+      const row   = Math.floor(idx / GRID_SIZE);
+      const col   = idx % GRID_SIZE;
       const conns = getConns(idx);
-      if (conns[0] && row > 0) {
-        const n = idx - GRID_SIZE;
-        if (!lit.has(n) && getConns(n)[2]) { lit.add(n); queue.push(n); }
-      }
-      if (conns[1] && col < GRID_SIZE - 1) {
-        const n = idx + 1;
-        if (!lit.has(n) && getConns(n)[3]) { lit.add(n); queue.push(n); }
-      }
-      if (conns[2] && row < GRID_SIZE - 1) {
-        const n = idx + GRID_SIZE;
-        if (!lit.has(n) && getConns(n)[0]) { lit.add(n); queue.push(n); }
-      }
-      if (conns[3] && col > 0) {
-        const n = idx - 1;
-        if (!lit.has(n) && getConns(n)[1]) { lit.add(n); queue.push(n); }
-      }
+      if (conns[0] && row > 0) { const n = idx-GRID_SIZE; if (!lit.has(n) && getConns(n)[2]) { lit.add(n); queue.push(n); } }
+      if (conns[1] && col < GRID_SIZE-1) { const n = idx+1; if (!lit.has(n) && getConns(n)[3]) { lit.add(n); queue.push(n); } }
+      if (conns[2] && row < GRID_SIZE-1) { const n = idx+GRID_SIZE; if (!lit.has(n) && getConns(n)[0]) { lit.add(n); queue.push(n); } }
+      if (conns[3] && col > 0) { const n = idx-1; if (!lit.has(n) && getConns(n)[1]) { lit.add(n); queue.push(n); } }
     }
-
     GRID_DEF.forEach((_, idx) => {
       const tile   = document.getElementById(`tile-${idx}`);
-      const isLit  = lit.has(idx);
-      tile.classList.toggle('lit', isLit);
+      tile.classList.toggle('lit', lit.has(idx));
       const circle = tile.querySelector('.pipe-center');
-      if (circle) {
-        const isDeadEnd = idx === DEAD_END_IDX;
-        circle.setAttribute('fill', isDeadEnd ? 'var(--danger)' : isLit ? 'var(--orange)' : 'var(--dim)');
-      }
+      if (circle) circle.setAttribute('fill', idx === DEAD_END_IDX ? 'var(--danger)' : lit.has(idx) ? 'var(--orange)' : 'var(--dim)');
     });
-
-    const pathComplete = lit.has(35);
-    document.getElementById('hud-path').textContent    = pathComplete ? 'COMPLETE' : 'INCOMPLETE';
-    document.getElementById('hud-path').style.color    = pathComplete ? 'var(--green)' : 'var(--warn)';
-    document.getElementById('hud-reactor').textContent = pathComplete ? 'READY' : 'OFFLINE';
-    document.getElementById('hud-reactor').style.color = pathComplete ? 'var(--green)' : 'var(--warn)';
-    return pathComplete;
+    const done = lit.has(35);
+    document.getElementById('hud-path').textContent    = done ? 'COMPLETE' : 'INCOMPLETE';
+    document.getElementById('hud-path').style.color    = done ? 'var(--green)' : 'var(--warn)';
+    document.getElementById('hud-reactor').textContent = done ? 'READY' : 'OFFLINE';
+    document.getElementById('hud-reactor').style.color = done ? 'var(--green)' : 'var(--warn)';
+    return done;
   }
 
   function checkSolution() {
     if (lockedOut || solved) return;
-    if (!tracePath()) {
-      setFeedback('No complete path detected. Keep rotating tiles.', 'fail');
-      return;
-    }
+    if (!tracePath()) { setFeedback('No complete path detected.', 'fail'); return; }
     handleSolve();
   }
 
@@ -623,7 +519,7 @@
     const state = JSON.parse(localStorage.getItem('erebus') || '{}');
     state.B = FRAGMENT;
     localStorage.setItem('erebus', JSON.stringify(state));
-    setFeedback('CORRECT — power restored. Fragment B recovered.', 'ok');
+    setFeedback('Power restored. Fragment B recovered.', 'ok');
     document.getElementById('hud-status').textContent = 'SOLVED';
     document.getElementById('hud-status').style.color = 'var(--green)';
     setTimeout(() => document.getElementById('success-overlay').classList.add('show'), 800);
@@ -646,14 +542,14 @@
       lockedOut = false;
       document.getElementById('submit-btn').disabled = false;
       bar.classList.remove('animating');
-      setFeedback('System unlocked. Try again.', '');
+      setFeedback('Unlocked. Try again.', '');
     }, 15000);
   }
 
   function setFeedback(msg, type) {
     const el = document.getElementById('feedback');
     el.textContent = msg;
-    el.className = `feedback${type ? ' ' + type : ''}`;
+    el.className = `feedback${type ? ' '+type : ''}`;
   }
 
   function useHint() {
@@ -676,7 +572,7 @@
       solved = true;
       tileRots = [...SOLUTION_ROTS];
       buildGrid();
-      setFeedback('Reactor already online. Fragment B: ' + FRAGMENT, 'ok');
+      setFeedback('Already online. Fragment B: ' + FRAGMENT, 'ok');
       document.getElementById('hud-status').textContent = 'SOLVED';
       document.getElementById('hud-status').style.color = 'var(--green)';
       document.getElementById('submit-btn').disabled = true;
