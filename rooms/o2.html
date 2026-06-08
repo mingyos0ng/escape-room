@@ -310,13 +310,14 @@
   <div class="room-body">
     <div>
 
-      <div class="wall-notice">
-        <div class="panel-label">WALL NOTICE — VASQUEZ</div>
-        <div class="notice-text">
-          <span class="alert">CAUTION:</span> Do not open all valves — pressure cascade will rupture the recycler.<br>
-          <span class="hi">"Only the prime positions flow."</span>
-        </div>
-      </div>
+<div class="wall-notice">
+  <div class="panel-label">WALL NOTICE — VASQUEZ</div>
+  <div class="notice-text">
+    <span class="alert">CAUTION:</span> Incorrect configuration will rupture the recycler.<br>
+    <span class="hi">"Indivisible positions only. Not one. Not composite."</span><br>
+    <span class="ts">— Last calibrated Stardate 2347.031</span>
+  </div>
+</div>
 
       <div class="valve-panel" id="valve-panel">
         <div class="valve-panel-label">8-VALVE PRESSURE ARRAY</div>
@@ -366,11 +367,11 @@
   const FRAGMENT  = '4471';
   const LOCKOUT_S = 15;
 
-  const hints = [
-    "A prime number is only divisible by 1 and itself. Which numbers between 1 and 8 qualify? Start by eliminating 1 (not prime), and 4, 6, 8 (even, greater than 2).",
-    "The primes between 1 and 8 are 2, 3, 5, and 7. Open exactly those four valves.",
-    "Open valves 2, 3, 5, and 7. Leave 1, 4, 6, and 8 closed."
-  ];
+const hints = [
+  "The note says 'indivisible' and 'not composite.' A number divisible only by 1 and itself has a specific mathematical name. Think about which numbers between 1 and 8 fit that description.",
+  "The clue excludes 1 (explicitly) and composite numbers (4, 6, 8 — divisible by more than two factors). That leaves 2, 3, 5, 7.",
+  "Open valves 2, 3, 5, and 7. Leave 1, 4, 6, and 8 closed."
+];
 
   let valveState = new Array(8).fill(false);
   let attempts   = [];
