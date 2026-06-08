@@ -51,35 +51,33 @@
     }
 
     .room-body {
-      display: grid; grid-template-columns: 1fr 300px;
+      display: grid; grid-template-columns: 1fr 280px;
       gap: 20px; align-items: start;
     }
     @media (max-width: 680px) { .room-body { grid-template-columns: 1fr; } }
 
-    /* ── LORE ── */
-    .lore-log {
+    /* ── WALL NOTICE ── */
+    .wall-notice {
       border: 1px solid var(--border); background: var(--panel);
-      padding: 20px 22px; margin-bottom: 16px; position: relative;
+      padding: 18px 20px; margin-bottom: 16px; position: relative;
+      opacity: 0; animation: fadeIn 0.6s ease 0.2s forwards;
     }
-    .lore-log::after {
+    .wall-notice::after {
       content: ''; position: absolute; top: 0; left: 0;
       width: 3px; height: 100%; background: var(--green);
     }
-    .lore-log.anim-1 { opacity: 0; animation: fadeIn 0.6s ease 0.2s forwards; }
-    .lore-log.anim-2 { opacity: 0; animation: fadeIn 0.6s ease 0.35s forwards; }
-    .log-entry {
+    .notice-text {
       font-family: var(--font-mono); font-size: 12px; line-height: 1.9; color: var(--text);
     }
-    .log-entry .ts    { color: var(--muted); }
-    .log-entry .hi    { color: var(--green); }
-    .log-entry .alert { color: var(--danger); }
-    .log-entry .warn  { color: var(--warn); }
+    .notice-text .hi    { color: var(--green); }
+    .notice-text .alert { color: var(--danger); }
+    .notice-text .ts    { color: var(--muted); }
 
     /* ── CABINET ── */
     .cabinet {
       border: 1px solid var(--border); background: var(--panel);
-      padding: 28px; position: relative; margin-bottom: 16px;
-      opacity: 0; animation: fadeIn 0.6s ease 0.4s forwards;
+      padding: 24px; position: relative; margin-bottom: 16px;
+      opacity: 0; animation: fadeIn 0.6s ease 0.3s forwards;
     }
     .cabinet-label {
       position: absolute; top: -9px; left: 20px;
@@ -87,17 +85,14 @@
       background: var(--panel); padding: 0 8px; letter-spacing: 0.1em;
     }
 
-    /* classification chart — hidden inside details */
-    .classify-details {
-      margin-bottom: 20px;
-    }
+    /* hidden chart */
+    .classify-details { margin-bottom: 20px; }
     .classify-details summary {
       font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em;
       color: var(--muted); cursor: pointer; padding: 10px 14px;
       border: 1px solid var(--border); background: var(--panel-2);
       list-style: none; display: flex; justify-content: space-between; align-items: center;
-      transition: border-color 0.2s, color 0.2s;
-      user-select: none;
+      transition: border-color 0.2s, color 0.2s; user-select: none;
     }
     .classify-details summary::-webkit-details-marker { display: none; }
     .classify-details summary:hover { border-color: var(--green); color: var(--green); }
@@ -107,63 +102,47 @@
 
     .classify-body {
       border: 1px solid var(--border); border-top: none;
-      background: var(--panel-2); padding: 16px 18px;
+      background: var(--panel-2); padding: 14px 16px;
     }
     .classify-note {
       font-family: var(--font-mono); font-size: 10px; color: var(--muted);
-      margin-bottom: 14px; line-height: 1.7; letter-spacing: 0.05em;
+      margin-bottom: 12px; line-height: 1.7;
     }
     .classify-note strong { color: var(--warn); font-weight: normal; }
     .classify-table { width: 100%; border-collapse: collapse; }
     .classify-table th {
       font-family: var(--font-hud); font-size: 9px; letter-spacing: 0.2em;
-      color: var(--muted); text-align: left; padding: 6px 8px;
+      color: var(--muted); text-align: left; padding: 5px 8px;
       border-bottom: 1px solid var(--border);
     }
     .classify-table td {
       font-family: var(--font-mono); font-size: 11px;
-      padding: 7px 8px; border-bottom: 1px solid rgba(26,46,61,0.4);
-      vertical-align: top;
+      padding: 6px 8px; border-bottom: 1px solid rgba(26,46,61,0.4); vertical-align: top;
     }
     .classify-table tr:last-child td { border-bottom: none; }
     .base-sym { font-weight: bold; font-size: 14px; }
-    .class-code { color: var(--text); }
     .class-range { color: var(--muted); font-size: 10px; }
 
-    /* sequence display */
+    /* sequence */
     .sequence-title {
       font-family: var(--font-hud); font-size: 9px; letter-spacing: 0.2em;
-      color: var(--muted); margin-bottom: 12px;
+      color: var(--muted); margin-bottom: 10px;
     }
-    .sequence-display {
-      display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 10px;
-    }
+    .sequence-display { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 8px; }
     .base-pair {
       border: 1px solid var(--border); background: var(--panel-2);
-      padding: 10px 8px; text-align: center; min-width: 42px;
+      padding: 8px 6px; text-align: center; min-width: 38px;
       transition: border-color 0.3s, background 0.3s;
     }
-    .base-pair.active {
-      border-color: var(--green); background: rgba(0,255,136,0.04);
-    }
-    .bp-index {
-      font-family: var(--font-mono); font-size: 8px; color: var(--dim);
-      margin-bottom: 4px; letter-spacing: 0.05em;
-    }
-    .bp-base {
-      font-family: var(--font-hud); font-size: 15px; font-weight: 900;
-      line-height: 1; margin-bottom: 4px;
-    }
-    .bp-digit {
-      font-family: var(--font-mono); font-size: 11px; color: var(--dim);
-      transition: color 0.3s;
-    }
+    .base-pair.active { border-color: var(--green); background: rgba(0,255,136,0.04); }
+    .bp-index { font-family: var(--font-mono); font-size: 8px; color: var(--dim); margin-bottom: 3px; }
+    .bp-base { font-family: var(--font-hud); font-size: 14px; font-weight: 900; line-height: 1; margin-bottom: 3px; }
+    .bp-digit { font-family: var(--font-mono); font-size: 10px; color: var(--dim); transition: color 0.3s; }
     .base-pair.active .bp-digit { color: var(--green); }
-    .base-pair.revealed .bp-digit { color: var(--text); }
 
     .sequence-note {
       font-family: var(--font-mono); font-size: 10px; color: var(--muted);
-      margin-top: 6px; letter-spacing: 0.05em; line-height: 1.6;
+      margin-top: 6px; line-height: 1.6;
     }
     .sequence-note strong { color: var(--warn); font-weight: normal; }
 
@@ -171,7 +150,7 @@
     .terminal {
       border: 1px solid var(--border); background: var(--panel);
       padding: 20px 22px; position: relative;
-      opacity: 0; animation: fadeIn 0.6s ease 0.5s forwards;
+      opacity: 0; animation: fadeIn 0.6s ease 0.4s forwards;
     }
     .terminal-label {
       position: absolute; top: -9px; left: 20px;
@@ -192,22 +171,20 @@
       height: 1px; background: var(--green); width: 100%;
     }
 
-    .submit-row { display: flex; gap: 12px; align-items: center; }
+    .submit-row { display: flex; gap: 10px; align-items: center; }
     .submit-btn {
-      font-family: var(--font-hud); font-size: 11px; font-weight: 700;
-      letter-spacing: 0.2em; padding: 12px 24px;
-      border: 1px solid var(--green); color: var(--green);
+      font-family: var(--font-hud); font-size: 11px; font-weight: 700; letter-spacing: 0.2em;
+      padding: 11px 22px; border: 1px solid var(--green); color: var(--green);
       background: transparent; cursor: pointer; transition: all 0.2s;
     }
     .submit-btn:hover:not(:disabled) { background: rgba(0,255,136,0.08); }
     .submit-btn:disabled { border-color: var(--muted); color: var(--muted); cursor: not-allowed; }
     .clear-btn {
-      font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.15em;
-      padding: 12px 16px; border: 1px solid var(--border); color: var(--muted);
-      background: transparent; cursor: pointer; transition: all 0.2s;
+      font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.15em; padding: 11px 14px;
+      border: 1px solid var(--border); color: var(--muted); background: transparent; cursor: pointer; transition: all 0.2s;
     }
     .clear-btn:hover { border-color: var(--muted); color: var(--text); }
-    .feedback { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; flex: 1; }
+    .feedback { font-family: var(--font-mono); font-size: 11px; flex: 1; }
     .feedback.ok   { color: var(--green); }
     .feedback.fail { color: var(--danger); }
     .feedback.warn { color: var(--warn); }
@@ -220,22 +197,15 @@
     .lockout-bar.animating { transform: scaleX(1); transition: transform 15s linear; }
 
     /* ── SIDE ── */
-    .side-panels { display: flex; flex-direction: column; gap: 16px; }
+    .side-panels { display: flex; flex-direction: column; gap: 14px; }
 
-    .info-panel {
-      border: 1px solid var(--border); background: var(--panel); padding: 20px 22px;
+    .history-panel {
+      border: 1px solid var(--border); background: var(--panel); padding: 18px 20px;
       opacity: 0; animation: fadeIn 0.6s ease 0.4s forwards;
     }
     .panel-title {
       font-family: var(--font-hud); font-size: 9px; letter-spacing: 0.25em; color: var(--muted);
-      border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 14px;
-    }
-    .info-text { font-family: var(--font-mono); font-size: 11px; line-height: 1.85; color: var(--text); }
-    .info-text strong { color: var(--green); font-weight: normal; }
-
-    .history-panel {
-      border: 1px solid var(--border); background: var(--panel); padding: 20px 22px;
-      opacity: 0; animation: fadeIn 0.6s ease 0.45s forwards;
+      border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 12px;
     }
     .attempt-list { list-style: none; }
     .attempt-item {
@@ -249,31 +219,9 @@
     .attempt-result.ok   { color: var(--green); }
     .no-attempts { font-family: var(--font-mono); font-size: 11px; color: var(--dim); }
 
-    /* side lore */
-    .side-log {
-      border: 1px solid var(--border); background: var(--panel); padding: 18px 20px;
-      position: relative; opacity: 0; animation: fadeIn 0.6s ease 0.5s forwards;
-    }
-    .side-log::after {
-      content: ''; position: absolute; top: 0; left: 0;
-      width: 3px; height: 100%; background: var(--danger);
-    }
-    .side-log-label {
-      font-family: var(--font-hud); font-size: 9px; letter-spacing: 0.2em;
-      color: var(--muted); margin-bottom: 10px;
-    }
-    .side-log-text {
-      font-family: var(--font-mono); font-size: 11px; line-height: 1.8; color: var(--muted);
-    }
-    .side-log-text strong { color: var(--warn); font-weight: normal; }
-
     .hint-panel {
-      border: 1px solid var(--border); background: var(--panel); padding: 20px 22px;
-      opacity: 0; animation: fadeIn 0.6s ease 0.55s forwards;
-    }
-    .hint-title {
-      font-family: var(--font-hud); font-size: 9px; letter-spacing: 0.25em; color: var(--muted);
-      border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 14px;
+      border: 1px solid var(--border); background: var(--panel); padding: 18px 20px;
+      opacity: 0; animation: fadeIn 0.6s ease 0.5s forwards;
     }
     .hint-btn {
       width: 100%; font-family: var(--font-hud); font-size: 10px; letter-spacing: 0.18em;
@@ -294,32 +242,32 @@
     .success-overlay.show { opacity: 1; pointer-events: all; }
     .success-card {
       border: 1px solid var(--green); background: var(--panel);
-      padding: 48px 52px; text-align: center; max-width: 480px; width: 90%; position: relative;
+      padding: 44px 48px; text-align: center; max-width: 440px; width: 90%; position: relative;
     }
     .success-card::before, .success-card::after {
       content: ''; position: absolute; height: 2px; left: 0; right: 0;
       background: linear-gradient(90deg, transparent, var(--green), transparent);
     }
     .success-card::before { top: 0; } .success-card::after { bottom: 0; }
-    .success-icon { font-size: 48px; color: var(--green); margin-bottom: 20px; display: block; }
-    .success-title { font-family: var(--font-hud); font-size: 18px; font-weight: 700; color: #e8f4f8; letter-spacing: 0.1em; margin-bottom: 10px; }
-    .success-sub { font-family: var(--font-mono); font-size: 12px; color: var(--muted); letter-spacing: 0.05em; line-height: 1.8; margin-bottom: 8px; }
+    .success-icon { font-size: 40px; color: var(--green); margin-bottom: 16px; display: block; }
+    .success-title { font-family: var(--font-hud); font-size: 17px; font-weight: 700; color: #e8f4f8; letter-spacing: 0.1em; margin-bottom: 8px; }
+    .success-sub { font-family: var(--font-mono); font-size: 11px; color: var(--muted); line-height: 1.8; margin-bottom: 6px; }
     .fragment-reveal {
-      font-family: var(--font-hud); font-size: 28px; font-weight: 900; color: var(--green);
-      letter-spacing: 0.3em; margin: 20px 0 28px;
-      border: 1px solid rgba(0,255,136,0.3); padding: 14px 24px; display: inline-block;
+      font-family: var(--font-hud); font-size: 26px; font-weight: 900; color: var(--green);
+      letter-spacing: 0.3em; margin: 16px 0 24px;
+      border: 1px solid rgba(0,255,136,0.3); padding: 12px 20px; display: inline-block;
     }
-    .success-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .success-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
     .success-btn {
       font-family: var(--font-hud); font-size: 10px; font-weight: 700; letter-spacing: 0.2em;
-      padding: 12px 22px; border: 1px solid var(--accent); color: var(--accent);
+      padding: 11px 20px; border: 1px solid var(--accent); color: var(--accent);
       background: transparent; cursor: pointer; text-decoration: none; transition: all 0.2s;
     }
     .success-btn:hover { background: rgba(0,212,255,0.08); }
     .success-btn.secondary { border-color: var(--border); color: var(--muted); }
     .success-btn.secondary:hover { border-color: var(--muted); color: var(--text); }
     .lore-reveal {
-      margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--border);
+      margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border);
       font-family: var(--font-mono); font-size: 11px; color: var(--muted); line-height: 1.8; text-align: left;
     }
     .lore-reveal strong { color: var(--warn); font-weight: normal; }
@@ -335,18 +283,16 @@
 <div class="success-overlay" id="success-overlay">
   <div class="success-card">
     <span class="success-icon">✓</span>
-    <div class="success-title">STORAGE UNLOCKED</div>
-    <div class="success-sub">Specimen cabinet access granted.<br>Fragment D recovered from secure storage.</div>
+    <div class="success-title">CABINET UNLOCKED</div>
+    <div class="success-sub">Fragment D recovered.</div>
     <div class="fragment-reveal">5502</div>
-    <div class="success-sub" style="font-size:10px">Fragment saved automatically.</div>
     <div class="success-actions">
       <a href="../hub.html" class="success-btn">‹ RETURN TO HUB</a>
       <button class="success-btn secondary" onclick="document.getElementById('success-overlay').classList.remove('show')">VIEW ROOM</button>
     </div>
     <div class="lore-reveal">
-      <strong>// DR. PETROV — PERSONAL LOG — DAY 91 — ENCRYPTED</strong><br>
-      "Yuen is symptomatic. Fever, disorientation, the lesions Helix Corp said were impossible outside a controlled exposure. The samples in cabinet D7 are the only proof of what strain they were engineering. I've locked them behind the sequencer — only someone who finds the classification chart can open it.<br><br>
-      Okafor came to the med bay this morning. He didn't ask about Yuen. He asked if the samples were <strong>still viable</strong>. That's when I understood — <strong>they don't want this stopped. They want to collect it.</strong>"
+      <strong>// PETROV — DAY 91</strong><br>
+      "Okafor came to ask if the samples were still viable. Not about Yuen. The samples. They don't want this stopped — they want to collect it."
     </div>
   </div>
 </div>
@@ -370,12 +316,12 @@
 
   <div class="room-header">
     <div>
-      <div class="room-tag">MODULE D // SECTOR 8 // MEDICAL</div>
+      <div class="room-tag">MODULE D // MED BAY</div>
       <div class="room-title">Medical Bay</div>
     </div>
     <div style="text-align:right">
       <div style="font-family:var(--font-mono);font-size:10px;color:var(--muted);letter-spacing:0.1em;margin-bottom:8px">
-        HINTS REMAINING: <span id="hint-count" style="color:var(--warn)">3</span>
+        HINTS: <span id="hint-count" style="color:var(--warn)">3</span>
       </div>
       <div class="badge badge--warn">CABINET LOCKED</div>
     </div>
@@ -384,50 +330,29 @@
   <div class="room-body">
     <div>
 
-      <div class="lore-log anim-1">
-        <div class="panel-label">SPECIMEN CABINET D7 — ACCESS PANEL</div>
-        <div class="log-entry">
-          <span class="ts">// GENETIC SEQUENCER LOCK — HELIX CORP BIOSTORAGE //</span><br>
-          Cabinet secured with a <span class="hi">DNA sequence cipher</span>.<br>
-          Convert the sample sequence to digits using the<br>
-          <span class="hi">Helix Corp Specimen Classification Chart</span>.<br><br>
-          The chart is stored on this terminal.<br>
-          Enter the resulting digit string to unlock.<br><br>
-          <span class="ts">// Note: Helix classification codes are non-standard.</span><br>
-          <span class="ts">// Do not assume conventional base numbering.</span>
-        </div>
-      </div>
-
-      <div class="lore-log anim-2">
-        <div class="panel-label">LABEL — SPECIMEN JAR — SMUDGED INK</div>
-        <div class="log-entry">
-          <span class="ts">// HANDWRITTEN — DR. PETROV //</span><br>
-          "Cabinet D7 contains <span class="warn">Lab 7 culture samples</span>.<br>
-          Sequencer lock code derived from <span class="hi">sample ID strand</span>.<br>
-          Classification chart is on the terminal — look<br>
-          carefully, the codes <span class="alert">are not in alphabetical order.</span><br>
-          I did that on purpose."
+      <div class="wall-notice">
+        <div class="panel-label">LABEL — SPECIMEN JAR — PETROV</div>
+        <div class="notice-text">
+          "Cabinet D7 — <span class="alert">Lab 7 cultures</span>. Sequencer lock uses the <span class="hi">sample ID strand</span>. Find the classification chart on the terminal. <span class="alert">Codes are not alphabetical.</span> I did that on purpose."
         </div>
       </div>
 
       <div class="cabinet" id="cabinet-panel">
-        <div class="cabinet-label">SPECIMEN CABINET D7 — BIOSTORAGE LOCK</div>
+        <div class="cabinet-label">SPECIMEN CABINET D7</div>
 
-        <!-- HIDDEN CLASSIFICATION CHART -->
         <details class="classify-details" id="classify-details">
-          <summary>HELIX CORP SPECIMEN CLASSIFICATION CHART ▸ [TAP TO EXPAND]</summary>
+          <summary>HELIX CORP SPECIMEN CLASSIFICATION CHART</summary>
           <div class="classify-body">
             <div class="classify-note">
-              Internal classification system for Lab 7 pathogen cultures.<br>
-              <strong>Codes assigned by binding affinity rank, not base name.</strong><br>
-              Use the code column to convert sample sequences to digits.
+              Lab 7 pathogen cultures — internal classification.<br>
+              <strong>Codes ranked by binding affinity, not base name.</strong>
             </div>
             <table class="classify-table">
               <thead>
                 <tr>
                   <th>BASE</th>
-                  <th>FULL NAME</th>
-                  <th>BINDING RANK</th>
+                  <th>NAME</th>
+                  <th>RANK</th>
                   <th>CODE</th>
                 </tr>
               </thead>
@@ -435,44 +360,40 @@
                 <tr>
                   <td><span class="base-sym" style="color:var(--warn)">T</span></td>
                   <td class="class-range">Thymine</td>
-                  <td class="class-range">Rank I — lowest affinity</td>
-                  <td class="class-code">1</td>
+                  <td class="class-range">Rank I — lowest</td>
+                  <td>1</td>
                 </tr>
                 <tr>
                   <td><span class="base-sym" style="color:var(--purple)">C</span></td>
                   <td class="class-range">Cytosine</td>
                   <td class="class-range">Rank II</td>
-                  <td class="class-code">2</td>
+                  <td>2</td>
                 </tr>
                 <tr>
                   <td><span class="base-sym" style="color:var(--orange)">G</span></td>
                   <td class="class-range">Guanine</td>
                   <td class="class-range">Rank III</td>
-                  <td class="class-code">3</td>
+                  <td>3</td>
                 </tr>
                 <tr>
                   <td><span class="base-sym" style="color:var(--accent)">A</span></td>
                   <td class="class-range">Adenine</td>
-                  <td class="class-range">Rank IV — highest affinity</td>
-                  <td class="class-code">4</td>
+                  <td class="class-range">Rank IV — highest</td>
+                  <td>4</td>
                 </tr>
               </tbody>
             </table>
           </div>
         </details>
 
-        <!-- SEQUENCE -->
-        <div class="sequence-title">SAMPLE ID STRAND — READ LEFT TO RIGHT</div>
+        <div class="sequence-title">SAMPLE ID STRAND</div>
         <div class="sequence-display" id="sequence-display"></div>
-        <div class="sequence-note">
-          Convert each base to its classification code.<br>
-          <strong>Warning: codes are ranked by binding affinity, not alphabetical order.</strong>
-        </div>
+        <div class="sequence-note"><strong>Codes ranked by binding affinity — check the chart.</strong></div>
 
       </div>
 
       <div class="terminal" id="terminal-panel">
-        <div class="terminal-label">CABINET UNLOCK — ENTER 10-DIGIT CODE</div>
+        <div class="terminal-label">CABINET UNLOCK — 10-DIGIT CODE</div>
         <div class="terminal-prompt">
           <span class="prompt-sym">&gt;_</span>
           <input
@@ -501,16 +422,6 @@
 
     <div class="side-panels">
 
-      <div class="info-panel">
-        <div class="panel-title">HOW TO SOLVE</div>
-        <div class="info-text">
-          Open the <strong>classification chart</strong> on the cabinet terminal.<br><br>
-          Each DNA base maps to a digit based on its <strong>binding affinity rank</strong> — not alphabetical order.<br><br>
-          Read the <strong>10-base sample strand</strong> left to right. Convert each base using the chart.<br><br>
-          Enter the full 10-digit code to unlock the cabinet.
-        </div>
-      </div>
-
       <div class="history-panel">
         <div class="panel-title">ATTEMPT HISTORY</div>
         <ul class="attempt-list" id="attempt-list">
@@ -518,16 +429,8 @@
         </ul>
       </div>
 
-      <div class="side-log">
-        <div class="side-log-label">MED BAY LOG — DAY 90</div>
-        <div class="side-log-text">
-          "Yuen's condition is deteriorating. I've run four diagnostic sequences on the culture samples — the mutation rate is <strong>unlike anything in published literature</strong>. This was not a naturally occurring pathogen.<br><br>
-          Someone <strong>designed</strong> this. The binding affinity profile is too precise to be accidental."
-        </div>
-      </div>
-
       <div class="hint-panel">
-        <div class="hint-title">REQUEST HINT</div>
+        <div class="panel-title">HINTS</div>
         <button class="hint-btn" id="hint-btn" onclick="useHint()">USE HINT (3 remaining)</button>
         <div class="hint-text" id="hint-text"></div>
       </div>
@@ -537,29 +440,12 @@
 </main>
 
 <div class="hud-bar">
-  <div class="hud-item"><div class="hud-dot" style="background:var(--green);box-shadow:0 0 4px var(--green)"></div>CABINET D7: <span id="hud-cabinet">LOCKED</span></div>
+  <div class="hud-item"><div class="hud-dot" style="background:var(--green)"></div>CABINET D7: <span id="hud-cabinet">LOCKED</span></div>
   <div class="hud-item">ATTEMPTS: <span id="hud-attempts">0</span></div>
   <div class="hud-item">STATUS: <span id="hud-status">UNSOLVED</span></div>
 </div>
 
 <script>
-  /* ══════════════════════
-     PUZZLE
-     Mapping (scrambled — by binding affinity rank):
-       T = 1
-       C = 2
-       G = 3
-       A = 4
-
-     Sequence (10 bases): G A T C G A C T A G
-     Answer: 3 4 1 2 3 4 2 1 4 3 → "3412342143"
-
-     Common wrong answers players will try:
-       A=1,T=2,G=3,C=4 → "4123412132" ✗ (alphabetical trap)
-       A=1,C=2,G=3,T=4 → wrong
-     The lore clue warns "not alphabetical order"
-  ══════════════════════ */
-
   const SEQUENCE  = ['G','A','T','C','G','A','C','T','A','G'];
   const BASE_MAP  = { T:1, C:2, G:3, A:4 };
   const BASE_COLOR = { A:'var(--accent)', T:'var(--warn)', G:'var(--orange)', C:'var(--purple)' };
@@ -567,9 +453,9 @@
   const FRAGMENT  = '5502';
 
   const hints = [
-    "Open the Helix Corp Specimen Classification Chart on the cabinet panel — tap it to expand. The mapping is NOT alphabetical. Read the 'Code' column carefully for each base.",
-    "The classification codes are: T=1, C=2, G=3, A=4 — ranked by binding affinity, lowest to highest. Now apply those to the sequence left to right.",
-    "The sequence G A T C G A C T A G converts to 3 4 1 2 3 4 2 1 4 3. Enter 3412342143 to unlock."
+    "Open the classification chart on the cabinet — tap to expand. The mapping is NOT alphabetical. Read the Code column carefully.",
+    "The codes are T=1, C=2, G=3, A=4 — ranked by binding affinity lowest to highest. Apply those to the sequence left to right.",
+    "The sequence G A T C G A C T A G converts to 3 4 1 2 3 4 2 1 4 3. Enter 3412342143."
   ];
 
   let attempts  = [];
@@ -591,11 +477,10 @@
     if (totalSeconds <= 60) timerEl.classList.add('critical');
     if (totalSeconds <= 0) {
       clearInterval(timerInterval);
-      document.body.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:'Orbitron',sans-serif;font-size:28px;color:#ff3b3b;letter-spacing:0.15em;text-align:center;flex-direction:column;gap:16px;background:#060a0f;"><div>LIFE SUPPORT FAILURE</div><div style="font-size:12px;color:#4a6a7a;font-family:'Share Tech Mono',monospace;letter-spacing:0.2em">MISSION FAILED — <a href="../hub.html" style="color:#00d4ff">RETURN TO HUB</a></div></div>`;
+      window.location.href = '../gameover.html';
     }
   }, 1000);
 
-  /* ── BUILD SEQUENCE ── */
   function buildSequence() {
     const el = document.getElementById('sequence-display');
     el.innerHTML = '';
@@ -612,35 +497,30 @@
     });
   }
 
-  /* ── HIGHLIGHT AS USER TYPES ── */
   function highlightSequence(val) {
     document.getElementById('term-underline').classList.add('active');
     setFeedback('', '');
-    SEQUENCE.forEach((base, i) => {
-      const bp     = document.getElementById(`bp-${i}`);
-      const digit  = bp.querySelector('.bp-digit');
-      const active = i < val.length;
-      bp.classList.toggle('active', active);
-      if (active) {
-        digit.textContent = val[i];
-        digit.style.color = 'var(--green)';
-        bp.classList.add('revealed');
+    SEQUENCE.forEach((_, i) => {
+      const bp    = document.getElementById(`bp-${i}`);
+      const digit = bp.querySelector('.bp-digit');
+      if (i < val.length) {
+        bp.classList.add('active');
+        digit.textContent  = val[i];
+        digit.style.color  = 'var(--green)';
       } else {
+        bp.classList.remove('active');
         digit.textContent = '?';
         digit.style.color = 'var(--dim)';
-        bp.classList.remove('revealed');
       }
     });
   }
 
-  /* ── CLEAR ── */
   function clearInput() {
     document.getElementById('code-input').value = '';
     highlightSequence('');
     setFeedback('', '');
   }
 
-  /* ── CHECK ── */
   function checkSolution() {
     if (lockedOut || solved) return;
     const val = document.getElementById('code-input').value.trim();
@@ -653,14 +533,14 @@
     if (val === SOLUTION) {
       handleSolve();
     } else {
-      // catch the common alphabetical-order mistake
-      if (val === '4123412143' || val === '1423142413') {
-        setFeedback(`"${val}" — check the chart again. The codes are ranked by binding affinity, not alphabetically. System locked 15s.`, 'fail');
-      } else if (val.length < 10) {
+      if (val.length < 10) {
         setFeedback(`Code must be 10 digits. You entered ${val.length}.`, 'warn');
         return;
+      }
+      if (val === '4123412143') {
+        setFeedback('Check the chart — codes are by binding affinity, not alphabetical. Locked 15s.', 'fail');
       } else {
-        setFeedback(`"${val}" — incorrect sequence. Cabinet locked for 15s.`, 'fail');
+        setFeedback(`"${val}" — incorrect. Locked 15s.`, 'fail');
       }
       triggerLockout();
     }
@@ -672,20 +552,19 @@
     const state = JSON.parse(localStorage.getItem('erebus') || '{}');
     state.D = FRAGMENT;
     localStorage.setItem('erebus', JSON.stringify(state));
-    SEQUENCE.forEach((_, i) => {
+    SEQUENCE.forEach((base, i) => {
       const bp    = document.getElementById(`bp-${i}`);
       const digit = bp.querySelector('.bp-digit');
       bp.classList.add('active');
-      digit.textContent = BASE_MAP[SEQUENCE[i]];
+      digit.textContent = BASE_MAP[base];
       digit.style.color = 'var(--green)';
     });
-    setFeedback('CORRECT — cabinet unlocked. Fragment D recovered.', 'ok');
+    document.getElementById('classify-details').open = true;
+    setFeedback('Correct. Fragment D recovered.', 'ok');
     document.getElementById('hud-cabinet').textContent = 'UNLOCKED';
     document.getElementById('hud-cabinet').style.color = 'var(--green)';
     document.getElementById('hud-status').textContent  = 'SOLVED';
     document.getElementById('hud-status').style.color  = 'var(--green)';
-    // auto-open the chart on solve so player sees the mapping
-    document.getElementById('classify-details').open = true;
     setTimeout(() => document.getElementById('success-overlay').classList.add('show'), 800);
   }
 
@@ -702,24 +581,24 @@
       document.getElementById('code-input').disabled = false;
       document.getElementById('code-input').focus();
       bar.classList.remove('animating');
-      setFeedback('Cabinet reset. Try again.', '');
+      setFeedback('Unlocked. Try again.', '');
     }, 15000);
   }
 
   function setFeedback(msg, type) {
     const el = document.getElementById('feedback');
     el.textContent = msg;
-    el.className = `feedback${type ? ' ' + type : ''}`;
+    el.className = `feedback${type ? ' '+type : ''}`;
   }
 
   function updateHistory() {
     const list = document.getElementById('attempt-list');
     document.getElementById('no-attempts')?.remove();
     list.innerHTML = '';
-    [...attempts].reverse().slice(0, 6).forEach(a => {
+    [...attempts].reverse().slice(0,6).forEach(a => {
       const li = document.createElement('li');
       li.className = 'attempt-item';
-      li.innerHTML = `<span class="attempt-val">${a.val}</span><span class="attempt-result ${a.correct ? 'ok' : 'fail'}">${a.correct ? '✓ CORRECT' : '✗ WRONG'}</span>`;
+      li.innerHTML = `<span class="attempt-val">${a.val}</span><span class="attempt-result ${a.correct?'ok':'fail'}">${a.correct?'✓':'✗'}</span>`;
       list.appendChild(li);
     });
   }
@@ -738,22 +617,20 @@
     localStorage.setItem('erebus', JSON.stringify(state));
   }
 
-  /* ── INIT ── */
   window.addEventListener('DOMContentLoaded', () => {
     buildSequence();
     const state = JSON.parse(localStorage.getItem('erebus') || '{}');
     if (state.D) {
       solved = true;
-      document.getElementById('code-input').value = SOLUTION;
+      document.getElementById('code-input').value    = SOLUTION;
       document.getElementById('code-input').disabled = true;
       document.getElementById('submit-btn').disabled = true;
       document.getElementById('classify-details').open = true;
       highlightSequence(SOLUTION);
       SEQUENCE.forEach((base, i) => {
-        const digit = document.getElementById(`bp-${i}`).querySelector('.bp-digit');
-        digit.textContent = BASE_MAP[base];
+        document.getElementById(`bp-${i}`).querySelector('.bp-digit').textContent = BASE_MAP[base];
       });
-      setFeedback('Cabinet already unlocked. Fragment D: ' + FRAGMENT, 'ok');
+      setFeedback('Already unlocked. Fragment D: ' + FRAGMENT, 'ok');
       document.getElementById('hud-cabinet').textContent = 'UNLOCKED';
       document.getElementById('hud-cabinet').style.color = 'var(--green)';
       document.getElementById('hud-status').textContent  = 'SOLVED';
