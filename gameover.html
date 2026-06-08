@@ -7,68 +7,75 @@
   <link rel="stylesheet" href="styles.css">
   <style>
 
-    body { overflow: hidden; }
-
-    .gameover-wrap {
-      min-height: 100vh;
-      display: flex; align-items: center; justify-content: center;
-      position: relative; z-index: 10;
+    body { overflow: hidden; animation: failFlicker 8s ease-in-out infinite; }
+    @keyframes failFlicker {
+      0%,100%{opacity:1} 88%{opacity:1} 89%{opacity:0.4} 90%{opacity:1} 94%{opacity:0.7} 95%{opacity:1}
     }
 
-    /* red tinted vignette for failure */
     .vignette-red {
       position: fixed; inset: 0;
       background: radial-gradient(ellipse at center, transparent 30%, rgba(80,0,0,0.6) 100%);
       pointer-events: none; z-index: 199;
     }
-
-    /* slow flicker on the whole screen */
-    body { animation: failFlicker 8s ease-in-out infinite; }
-    @keyframes failFlicker {
-      0%,100% { opacity: 1; }
-      88%     { opacity: 1; }
-      89%     { opacity: 0.4; }
-      90%     { opacity: 1; }
-      94%     { opacity: 0.7; }
-      95%     { opacity: 1; }
+    .static-layer {
+      position: fixed; inset: 0; pointer-events: none; z-index: 198; opacity: 0.015;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 200px 200px;
+      animation: staticMove 0.5s steps(1) infinite;
+    }
+    @keyframes staticMove {
+      0%{background-position:0 0} 25%{background-position:-30px 10px}
+      50%{background-position:15px -20px} 75%{background-position:-10px 30px}
+      100%{background-position:20px -10px}
     }
 
-    .gameover-card {
-      max-width: 620px; width: 90%; text-align: center; padding: 0 20px;
+    .gameover-wrap {
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      position: relative; z-index: 10;
     }
+    .gameover-card { max-width: 580px; width: 90%; text-align: center; padding: 0 20px; }
 
     .go-eyebrow {
       font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.3em;
       color: var(--danger); margin-bottom: 20px;
       opacity: 0; animation: fadeIn 0.5s ease 0.3s forwards;
     }
-
     .go-title {
       font-family: var(--font-hud); font-size: clamp(38px, 9vw, 80px);
       font-weight: 900; letter-spacing: 0.12em; color: var(--danger);
       line-height: 1; margin-bottom: 8px;
-      opacity: 0; animation: fadeIn 0.7s ease 0.6s forwards;
       text-shadow: 0 0 40px rgba(255,59,59,0.3);
+      opacity: 0; animation: fadeIn 0.7s ease 0.6s forwards;
     }
-
     .go-sub {
       font-family: var(--font-hud); font-size: 13px; letter-spacing: 0.2em;
-      color: #e8f4f8; margin-bottom: 40px;
+      color: #e8f4f8; margin-bottom: 36px;
       opacity: 0; animation: fadeIn 0.7s ease 0.9s forwards;
     }
-
     .go-divider {
-      height: 1px;
-      background: linear-gradient(90deg, transparent, var(--danger), transparent);
-      margin: 0 auto 36px; max-width: 400px; opacity: 0;
-      animation: fadeIn 0.7s ease 1.1s forwards;
+      height: 1px; background: linear-gradient(90deg, transparent, var(--danger), transparent);
+      margin: 0 auto 32px; max-width: 400px;
+      opacity: 0; animation: fadeIn 0.7s ease 1.1s forwards;
     }
 
-    /* cause of death */
+    /* stats */
+    .go-stats {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 32px;
+      opacity: 0; animation: fadeIn 0.7s ease 1.3s forwards;
+    }
+    .go-stat-val {
+      font-family: var(--font-hud); font-size: 26px; font-weight: 900;
+      color: var(--danger); margin-bottom: 6px; line-height: 1;
+    }
+    .go-stat-val.partial { color: var(--warn); }
+    .go-stat-val.none    { color: var(--muted); }
+    .go-stat-label { font-family: var(--font-mono); font-size: 9px; color: var(--muted); letter-spacing: 0.15em; }
+
+    /* cause */
     .cause-panel {
       border: 1px solid rgba(255,59,59,0.3); background: rgba(255,59,59,0.04);
-      padding: 20px 28px; margin-bottom: 32px; text-align: left;
-      position: relative; opacity: 0; animation: fadeIn 0.7s ease 1.3s forwards;
+      padding: 18px 22px; margin-bottom: 28px; text-align: left; position: relative;
+      opacity: 0; animation: fadeIn 0.7s ease 1.5s forwards;
     }
     .cause-panel::after {
       content: ''; position: absolute; top: 0; left: 0;
@@ -76,36 +83,18 @@
     }
     .cause-label {
       font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.2em;
-      color: var(--danger); margin-bottom: 10px;
+      color: var(--danger); margin-bottom: 8px;
     }
     .cause-text {
-      font-family: var(--font-mono); font-size: 12px; color: var(--muted);
-      line-height: 1.8;
+      font-family: var(--font-mono); font-size: 11px; color: var(--muted); line-height: 1.8;
     }
     .cause-text strong { color: var(--text); font-weight: normal; }
 
-    /* stats */
-    .go-stats {
-      display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
-      margin-bottom: 36px; opacity: 0; animation: fadeIn 0.7s ease 1.5s forwards;
-    }
-    .go-stat { text-align: center; }
-    .go-stat-val {
-      font-family: var(--font-hud); font-size: 26px; font-weight: 900;
-      color: var(--danger); margin-bottom: 6px; line-height: 1;
-    }
-    .go-stat-val.partial { color: var(--warn); }
-    .go-stat-val.none    { color: var(--muted); }
-    .go-stat-label {
-      font-family: var(--font-mono); font-size: 9px; color: var(--muted);
-      letter-spacing: 0.15em;
-    }
-
-    /* final log */
+    /* okafor log */
     .final-log {
       border: 1px solid var(--border); background: var(--panel);
-      padding: 22px 26px; text-align: left; margin-bottom: 32px;
-      position: relative; opacity: 0; animation: fadeIn 0.7s ease 1.7s forwards;
+      padding: 18px 22px; margin-bottom: 28px; text-align: left; position: relative;
+      opacity: 0; animation: fadeIn 0.7s ease 1.7s forwards;
     }
     .final-log::after {
       content: ''; position: absolute; top: 0; left: 0;
@@ -113,11 +102,10 @@
     }
     .final-log-label {
       font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.2em;
-      color: var(--muted); margin-bottom: 10px;
+      color: var(--muted); margin-bottom: 8px;
     }
     .final-log-text {
-      font-family: var(--font-mono); font-size: 12px; color: var(--muted);
-      line-height: 1.9;
+      font-family: var(--font-mono); font-size: 11px; color: var(--muted); line-height: 1.8;
     }
     .final-log-text strong { color: var(--warn); font-weight: normal; }
 
@@ -134,34 +122,15 @@
       transition: all 0.25s; position: relative; overflow: hidden;
     }
     .go-btn::before {
-      content: ''; position: absolute; inset: 0;
-      background: var(--danger); transform: translateX(-101%);
-      transition: transform 0.3s ease; z-index: 0;
+      content: ''; position: absolute; inset: 0; background: var(--danger);
+      transform: translateX(-101%); transition: transform 0.3s ease; z-index: 0;
     }
     .go-btn:hover::before { transform: translateX(0); }
     .go-btn span { position: relative; z-index: 1; }
     .go-btn:hover span { color: var(--bg); }
-    .go-btn.secondary {
-      border-color: var(--border); color: var(--muted);
-    }
+    .go-btn.secondary { border-color: var(--border); color: var(--muted); }
     .go-btn.secondary::before { background: var(--border-hi); }
     .go-btn.secondary:hover span { color: var(--text); }
-
-    /* particle static effect */
-    .static-layer {
-      position: fixed; inset: 0; pointer-events: none; z-index: 198;
-      opacity: 0.015;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-      background-size: 200px 200px;
-      animation: staticMove 0.5s steps(1) infinite;
-    }
-    @keyframes staticMove {
-      0%   { background-position: 0 0; }
-      25%  { background-position: -30px 10px; }
-      50%  { background-position: 15px -20px; }
-      75%  { background-position: -10px 30px; }
-      100% { background-position: 20px -10px; }
-    }
 
   </style>
 </head>
@@ -174,40 +143,35 @@
 <div class="gameover-wrap">
   <div class="gameover-card">
 
-    <div class="go-eyebrow">EREBUS STATION // EMERGENCY POWER DEPLETED // STARDATE 2347.156</div>
+    <div class="go-eyebrow">EREBUS STATION // POWER DEPLETED // STARDATE 2347.156</div>
     <div class="go-title">MISSION<br>FAILED</div>
     <div class="go-sub">ENGINEER MIRA KOVAČ — DECEASED</div>
     <div class="go-divider"></div>
 
-    <div class="cause-panel">
-      <div class="cause-label">// AUTOMATED INCIDENT REPORT — EREBUS-7 BLACK BOX</div>
-      <div class="cause-text" id="cause-text">
-        Loading incident data...
-      </div>
-    </div>
-
     <div class="go-stats">
-      <div class="go-stat">
-        <div class="go-stat-val none" id="stat-time">00:00</div>
+      <div>
+        <div class="go-stat-val none">00:00</div>
         <div class="go-stat-label">TIME REMAINING</div>
       </div>
-      <div class="go-stat">
+      <div>
         <div class="go-stat-val" id="stat-frags">0 / 4</div>
         <div class="go-stat-label">FRAGMENTS COLLECTED</div>
       </div>
-      <div class="go-stat">
+      <div>
         <div class="go-stat-val" id="stat-hints">0</div>
         <div class="go-stat-label">HINTS USED</div>
       </div>
     </div>
 
+    <div class="cause-panel">
+      <div class="cause-label">// AUTOMATED INCIDENT REPORT — EREBUS-7</div>
+      <div class="cause-text" id="cause-text">Loading...</div>
+    </div>
+
     <div class="final-log">
-      <div class="final-log-label">// COMMANDER OKAFOR — ENCRYPTED PERSONAL LOG — DAY 87</div>
+      <div class="final-log-label">// OKAFOR — PERSONAL LOG — DAY 87</div>
       <div class="final-log-text">
-        "Helix Corp confirmed extraction window: <strong>Day 95</strong>. The collection team arrives before anyone outside this station finds out what we've been culturing.<br><br>
-        The crew are becoming... inconvenient. Petrov is asking questions I can't answer without exposing the project scope. I've recommended to Helix that we <strong>accelerate the timeline</strong>.<br><br>
-        If life support fails before Day 95, the samples remain viable for 72 hours in the cabinet. The station's black box will record equipment failure as the cause. <strong>No one will look twice.</strong><br><br>
-        Whatever happens to the crew — that was never part of my brief."
+        "Helix Corp confirmed extraction window: <strong>Day 95</strong>. If life support fails before then, the samples remain viable for 72 hours. The black box will record equipment failure. <strong>No one will look twice.</strong>"
       </div>
     </div>
 
@@ -223,34 +187,30 @@
   function tryAgain() {
     localStorage.removeItem('erebus');
     localStorage.removeItem('erebus-time');
+    localStorage.removeItem('erebus-journal');
     window.location.href = 'hub.html';
   }
 
   window.addEventListener('DOMContentLoaded', () => {
-    const state    = JSON.parse(localStorage.getItem('erebus') || '{}');
-    const count    = ['A','B','C','D'].filter(id => !!state[id]).length;
-    const hints    = state.hintsUsed || 0;
+    const state = JSON.parse(localStorage.getItem('erebus') || '{}');
+    const count = ['A','B','C','D'].filter(id => !!state[id]).length;
+    const hints = state.hintsUsed || 0;
 
-    // stat display
-    document.getElementById('stat-time').textContent  = '00:00';
     document.getElementById('stat-frags').textContent = `${count} / 4`;
     document.getElementById('stat-hints').textContent = hints;
 
     const fragEl = document.getElementById('stat-frags');
-    if (count === 0)      fragEl.className = 'go-stat-val none';
-    else if (count < 4)   fragEl.className = 'go-stat-val partial';
-    else                  fragEl.className = 'go-stat-val';
+    fragEl.className = count === 0 ? 'go-stat-val none' : count < 4 ? 'go-stat-val partial' : 'go-stat-val';
 
-    // contextual cause of death based on progress
-    const causes = {
-      0: `Engineer Kovač regained consciousness at 04:17 station time. Emergency power reserves depleted at <strong>04:37</strong> — twenty minutes later — before any critical systems could be restored. Atmospheric processors shut down at 04:38. Life support failure confirmed at <strong>04:41</strong>. No distress signal was broadcast. No escape pod was launched. The station's black box recorded the cause as equipment failure.`,
-      1: `Engineer Kovač restored one of four critical modules before emergency power reserves depleted at <strong>04:37</strong>. Atmospheric processors, reactor core, and communications array remained offline. Life support failure confirmed at <strong>04:41</strong>. The partially restored module reverted to emergency standby without a power source. No distress signal was broadcast.`,
-      2: `Engineer Kovač restored two of four critical modules — a significant effort under the circumstances. Emergency power depleted before the remaining systems could be brought online. <strong>So close.</strong> Life support failure confirmed at 04:41. The escape pod docking clamps remained engaged.`,
-      3: `Engineer Kovač came within one module of a successful escape. Three of four systems restored. Emergency power depleted with the final fragment uncollected. <strong>04:37 — eleven seconds short.</strong> The escape pod launch sequence was never initiated. The station's black box will record this as equipment failure. It wasn't.`,
-      4: `All four modules restored. All four fragments collected. Engineer Kovač reached the escape pod with the complete launch code — but time ran out before the sequence could be entered. The docking clamps held. <strong>Four digits away from escape.</strong> The samples remain in cabinet D7, viable for another 68 hours.`
-    };
+    const causes = [
+      `Emergency power depleted at 04:37 before any systems were restored. Life support failure confirmed at <strong>04:41</strong>. No distress signal broadcast. No escape pod launched.`,
+      `One of four modules restored before power depletion. The remaining systems — including life support — could not be brought online in time. No escape pod launched.`,
+      `Two of four modules restored. Power depleted with two fragments uncollected. <strong>So close.</strong> The escape pod docking clamps remained engaged.`,
+      `Three of four modules restored. Power depleted with one fragment remaining. The launch sequence was never initiated. <strong>Eleven seconds short.</strong>`,
+      `All four fragments collected. Power depleted before the launch code could be entered. The docking clamps held. <strong>Four digits away.</strong>`,
+    ];
 
-    document.getElementById('cause-text').innerHTML = causes[count] || causes[0];
+    document.getElementById('cause-text').innerHTML = causes[count];
   });
 </script>
 </body>
