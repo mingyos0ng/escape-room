@@ -481,21 +481,20 @@
     }
   }, 1000);
 
-  function buildSequence() {
-    const el = document.getElementById('sequence-display');
-    el.innerHTML = '';
-    SEQUENCE.forEach((base, i) => {
-      const div = document.createElement('div');
-      div.className = 'base-pair';
-      div.id = `bp-${i}`;
-      div.innerHTML = `
-        <div class="bp-index">${String(i+1).padStart(2,'0')}</div>
-        <div class="bp-base" style="color:${BASE_COLOR[base]}">${base}</div>
-        <div class="bp-digit">?</div>
-      `;
-      el.appendChild(div);
-    });
-  }
+function buildSequence() {
+  const el = document.getElementById('sequence-display');
+  el.innerHTML = '';
+  SEQUENCE.forEach((base, i) => {
+    const div = document.createElement('div');
+    div.className = 'base-pair';
+    div.id = `bp-${i}`;
+    div.innerHTML = `
+      <div class="bp-base" style="color:${BASE_COLOR[base]}">${base}</div>
+      <div class="bp-digit">·</div>
+    `;
+    el.appendChild(div);
+  });
+}
 
   function highlightSequence(val) {
     document.getElementById('term-underline').classList.add('active');
@@ -509,7 +508,7 @@
         digit.style.color  = 'var(--green)';
       } else {
         bp.classList.remove('active');
-        digit.textContent = '?';
+        digit.textContent = '·';  
         digit.style.color = 'var(--dim)';
       }
     });
