@@ -454,18 +454,23 @@ const hints = [
     hud.style.color       = open > target ? 'var(--danger)' : open === target ? 'var(--green)' : 'var(--warn)';
   }
 
-  function checkSolution() {
-    if (lockedOut || solved) return;
-    const correct  = SOLUTION.every((s, i) => s === valveState[i]);
-    const openNums = valveState.map((v,i) => v ? i+1 : null).filter(Boolean);
-    attempts.push({ valves: openNums.join(', ') || 'none', correct });
-    updateHistory();
-    document.getElementById('hud-attempts').textContent = attempts.length;
-    if (correct) { handleSolve(); }
-    else {
-      triggerLockout();
-      setFeedback('Incorrect. System locked 15s.', 'fail');
-    }
+ function checkSolution() {
+  if (lockedOut || solved) return;
+  const correct  = SOLUTION.every((s, i) => s === valveState[i]);
+  const openNums = valveState.map((v,i) => v ? i+1 : null).filter(Boolean);
+  attempts.push({ valves: openNums.join(', ') || 'none', correct });
+  updateHistory();
+  document.getElementById('hud-attempts').textContent = attempts.length;
+  if (correct) {
+    handleSolve();
+  } else {
+    triggerLockout();
+    const evens = openNums.every(n => n % 2 === 0);
+    const odds  = openNums.every(n => n % 2 !== 0);
+    if (evens)     setFeedback('All even — re-read the clue. Locked 15s.', 'fail');
+    else if (odds) setFeedback('All odd — not quite. Locked 15s.', 'fail');
+    else           setFeedback('Incorrect configuration. Locked 15s.', 'fail');
+  }
   }
 
   function handleSolve() {
