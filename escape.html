@@ -507,6 +507,12 @@
       seg.className = `code-seg ${has ? 'loaded' : 'empty'}`;
       seg.textContent = has ? FRAGMENTS[id] : '????';
       display.appendChild(seg);
+
+      if (collected === 4) {
+  document.getElementById('launch-btn').classList.add('ready');
+  document.getElementById('code-input').disabled = false;
+  setFeedback('All fragments loaded. Assemble the code and initiate launch.', 'ok');
+}
     });
 
     document.getElementById('hud-frags').textContent = `${collected} / 4`;
